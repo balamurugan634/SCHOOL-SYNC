@@ -1,0 +1,26 @@
+{
+  "name": "school-sync",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@12.14.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "bash scripts/dev/start-all.sh",
+    "dev:prod": "bash scripts/dev/web-prod.sh",
+    "dev:stop": "bash scripts/dev/stop-all.sh",
+    "dev:db": "pnpm --filter @school-sync/api dev:db",
+    "dev:api": "bash scripts/dev/heavy.sh --no-slot -m 2G -- env NODE_OPTIONS=--max-old-space-size=1024 pnpm --filter @school-sync/api dev",
+    "dev:web": "bash scripts/dev/heavy.sh --no-slot -m 5G -- env NODE_OPTIONS=--max-old-space-size=3584 NEXT_TELEMETRY_DISABLED=1 pnpm --filter @school-sync/web dev",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "site:create": "pnpm --filter @school-sync/api site:create",
+    "site:migrate": "pnpm --filter @school-sync/api site:migrate",
+    "site:seed-demo": "pnpm --filter @school-sync/api site:seed-demo",
+    "billing": "pnpm --filter @school-sync/api billing",
+    "site:reset-demo": "pnpm --filter @school-sync/api site:reset-demo",
+    "site:drop": "pnpm --filter @school-sync/api site:drop"
+  }
+}

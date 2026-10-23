@@ -1,0 +1,18 @@
+node_modules/
+.pnpm-store/
+dist/
+build/
+.next/
+.next-*/
+out/
+coverage/
+.turbo/
+*.log
+.env
+.env.*
+!.env.example
+.data/
+.DS_Store
+# generated previews are committed on purpose under docs/previews
+apps/api/storage/
+*.tsbuildinfo

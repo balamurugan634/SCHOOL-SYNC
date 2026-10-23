@@ -1,0 +1,31 @@
+# Wildcard routing: every school is <code>.{$BASE_DOMAIN}; custom domains work too (add them with
+# `on_demand_tls` + an `ask` endpoint, or list them here). Caddy terminates TLS (Let's Encrypt) and forwards the Host
+# header untouched, which is how the API/web resolve the school.
+{
+	email {$ACME_EMAIL}
+}
+
+*.{$BASE_DOMAIN}, {$BASE_DOMAIN} {
+	# wildcard cert needs the DNS challenge plugin for your DNS provider (build Caddy with it), e.g.:
+	# tls { dns cloudflare {env.CF_API_TOKEN} }
+
+	encode zstd gzip
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		-Server
+	}
+
+	@api path /api/v1/* /docs
+	handle @api {
+		reverse_proxy api:4000 {
+			lb_policy least_conn
+			health_uri /api/v1/healthz
+			health_interval 10s
+		}
+	}
+	handle {
+		reverse_proxy web:3000
+	}
+}

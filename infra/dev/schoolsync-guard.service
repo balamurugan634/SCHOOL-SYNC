@@ -1,0 +1,13 @@
+[Unit]
+Description=SchoolSync dev memory guard (kills only the biggest dev tool before the desktop freezes)
+
+[Service]
+ExecStart=%h/SCHOOL-SYNC/scripts/dev/guard.sh
+Restart=always
+RestartSec=5
+# be nice to the machine: this is a 2-second poll loop
+Nice=5
+MemoryMax=64M
+
+[Install]
+WantedBy=default.target
