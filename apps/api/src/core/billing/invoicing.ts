@@ -1,16 +1,19 @@
-import { and, eq, ne, sql } from 'drizzle-orm';
-import { billingInvoices, platformAudit, subscriptions, tenants } from '../../db/control/schema';
+import { and, eq, inArray, ne, sql } from 'drizzle-orm';
+import { billingInvoices, platformAudit, subscriptions, tenants, usageSnapshots } from '../../db/control/schema';
 import { controlDb } from '../tenancy/control-db';
 import { invalidateLicense } from './license';
 import { peakBillable } from './metering';
 
 type Invoice = typeof billingInvoices.$inferSelect;
 
+/** BIL-<year>-<5 digits>. Uses the highest number already issued for the year (not a row count), so deleting a school can never recycle a number. */
 async function nextNumber(year: string): Promise<string> {
+  const prefix = `BIL-${year.slice(0, 4)}-`;
   const [r] = await controlDb()
-    .select({ n: sql<number>`count(*)::int` })
-    .from(billingInvoices);
-  return `BIL-${year.slice(0, 4)}-${String((r?.n ?? 0) + 1).padStart(5, '0')}`;
+    .select({ n: sql<number>`coalesce(max((regexp_match(${billingInvoices.number}, '([0-9]+)$'))[1]::int), 0)::int` })
+    .from(billingInvoices)
+    .where(sql`${billingInvoices.number} like ${`${prefix}%`}`);
+  return `${prefix}${String((r?.n ?? 0) + 1).padStart(5, '0')}`;
 }
 
 /** Committed-seats invoice at the start of the academic year: licensed seats × price per student. */
@@ -30,21 +33,52 @@ export async function issueSeatInvoice(subscriptionId: string, dueOn?: string): 
   return inv!;
 }
 
+export interface TrueUpPlan {
+  /** highest billable-student count metered during the subscription year */
+  peak: number;
+  /** students already covered by non-void seats and true-up invoices */
+  invoiced: number;
+  /** students above what has been invoiced: what a true-up would bill now (never negative) */
+  extra: number;
+}
+
+/** Per subscription: how many students a true-up would bill right now. One batch of two queries, used by the invoice and by the billing overview. */
+export async function trueUpPlan(subscriptionIds: string[]): Promise<Map<string, TrueUpPlan>> {
+  const out = new Map<string, TrueUpPlan>();
+  if (!subscriptionIds.length) return out;
+  const db = controlDb();
+  const [peaks, billed] = await Promise.all([
+    db
+      .select({ id: usageSnapshots.subscriptionId, n: sql<number>`coalesce(max(${usageSnapshots.billableStudents}), 0)::int` })
+      .from(usageSnapshots)
+      .where(inArray(usageSnapshots.subscriptionId, subscriptionIds))
+      .groupBy(usageSnapshots.subscriptionId),
+    db
+      .select({ id: billingInvoices.subscriptionId, n: sql<number>`coalesce(sum(${billingInvoices.students}), 0)::int` })
+      .from(billingInvoices)
+      .where(and(inArray(billingInvoices.subscriptionId, subscriptionIds), ne(billingInvoices.status, 'void'), sql`${billingInvoices.kind} in ('seats','true_up')`))
+      .groupBy(billingInvoices.subscriptionId),
+  ]);
+  const peakOf = new Map(peaks.map((p) => [p.id, p.n]));
+  const billedOf = new Map(billed.map((b) => [b.id, b.n]));
+  for (const id of subscriptionIds) {
+    const peak = peakOf.get(id) ?? 0;
+    const invoiced = billedOf.get(id) ?? 0;
+    out.set(id, { peak, invoiced, extra: Math.max(0, peak - invoiced) });
+  }
+  return out;
+}
+
 /** Bill students above what has been invoiced so far (peak billable in the year minus already-invoiced seats). */
 export async function issueTrueUp(subscriptionId: string, dueOn?: string): Promise<Invoice | null> {
   const db = controlDb();
   const [sub] = await db.select().from(subscriptions).where(eq(subscriptions.id, subscriptionId)).limit(1);
   if (!sub) throw new Error('Subscription not found');
-  const peak = await peakBillable(sub.id);
-  const [billed] = await db
-    .select({ n: sql<number>`coalesce(sum(${billingInvoices.students}), 0)::int` })
-    .from(billingInvoices)
-    .where(and(eq(billingInvoices.subscriptionId, sub.id), ne(billingInvoices.status, 'void'), sql`${billingInvoices.kind} in ('seats','true_up')`));
-  const extra = peak - (billed?.n ?? 0);
-  if (extra <= 0 || sub.pricePerStudentMinor <= 0) return null;
+  const plan = (await trueUpPlan([sub.id])).get(sub.id)!;
+  if (plan.extra <= 0 || sub.pricePerStudentMinor <= 0) return null;
   const [inv] = await db
     .insert(billingInvoices)
-    .values({ number: await nextNumber(sub.academicYear), tenantId: sub.tenantId, subscriptionId: sub.id, kind: 'true_up', students: extra, unitPriceMinor: sub.pricePerStudentMinor, amountMinor: extra * sub.pricePerStudentMinor, currency: sub.currency, dueOn: dueOn ?? null, notes: `True-up: peak ${peak} students, ${billed?.n ?? 0} already invoiced` })
+    .values({ number: await nextNumber(sub.academicYear), tenantId: sub.tenantId, subscriptionId: sub.id, kind: 'true_up', students: plan.extra, unitPriceMinor: sub.pricePerStudentMinor, amountMinor: plan.extra * sub.pricePerStudentMinor, currency: sub.currency, dueOn: dueOn ?? null, notes: `True-up: peak ${plan.peak} students, ${plan.invoiced} already invoiced` })
     .returning();
   return inv!;
 }

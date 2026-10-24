@@ -34,11 +34,12 @@
   --brand-soft: color-mix(in srgb, var(--brand) 8%, var(--surface));
   --ring: color-mix(in srgb, var(--brand) 35%, transparent);
 
-  --accent: #c9731a;
-  --accent-ink: #8a4b00;
-  --accent-soft: #fbefd9;
+  --accent: #d1411b;
+  --accent-ink: #a93310;
+  --accent-soft: #fce7dd;
+  --on-accent: #ffffff;
 
-  --role-student: #c9731a;
+  --role-student: #d1411b;
   --role-parent: #b04a6f;
   --role-teacher: #3f63b5;
   --role-management: var(--brand);
@@ -49,7 +50,7 @@
 
   --success: #2a7448; --success-soft: #e6f3ea;
   --warning: #9a6200; --warning-soft: #fbf0d9;
-  --danger: #b3412e; --danger-soft: #fbeae6;
+  --danger: #b3203e; --danger-soft: #fbe8ec;
   --info: var(--brand-ink); --info-soft: var(--brand-soft);
 
   --chart-1: #00909b; --chart-2: #b8472f; --chart-3: #3f63b5; --chart-4: #c9731a; --chart-5: #6c5bb0; --chart-6: #4f8a45;
@@ -110,13 +111,14 @@
 
   --role-parent-soft: #2d1a22;
   --role-teacher-soft: #1a2236;
-  --accent: #e3a547;
-  --accent-ink: #e3a547;
-  --accent-soft: #2b2110;
+  --accent: #ff7f5a;
+  --accent-ink: #ff7f5a;
+  --accent-soft: #2e1812;
+  --on-accent: #1c1a17;
 
   --success: #5cc48e; --success-soft: #12261c;
   --warning: #e5b34d; --warning-soft: #2b2110;
-  --danger: #f2877d; --danger-soft: #2d1513;
+  --danger: #f2879a; --danger-soft: #2d1319;
 
   --chart-1: #00909b; --chart-2: #d0583f; --chart-3: #5c80d6; --chart-4: #c77b2c; --chart-5: #8b7bdb; --chart-6: #5f9e52;
   --seq-1: #0a4a52; --seq-2: #11666f; --seq-3: #2c8791; --seq-4: #5aa5ae; --seq-5: #8fc3c9; --seq-6: #bfdde0; --seq-7: #e4f1f2;
@@ -157,6 +159,7 @@
   --color-accent: var(--accent);
   --color-accent-ink: var(--accent-ink);
   --color-accent-soft: var(--accent-soft);
+  --color-on-accent: var(--on-accent);
   --color-success: var(--success);
   --color-success-soft: var(--success-soft);
   --color-warning: var(--warning);

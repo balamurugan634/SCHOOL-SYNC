@@ -8,7 +8,7 @@ const external = [...Object.keys(pkg.dependencies ?? {}), ...Object.keys(pkg.dev
 
 rmSync('dist', { recursive: true, force: true });
 await build({
-  entryPoints: { main: 'src/main.ts', 'cli/site-create': 'src/cli/site-create.ts', 'cli/site-migrate': 'src/cli/site-migrate.ts', 'cli/billing': 'src/cli/billing.ts' },
+  entryPoints: { main: 'src/main.ts', 'cli/site-create': 'src/cli/site-create.ts', 'cli/site-migrate': 'src/cli/site-migrate.ts', 'cli/billing': 'src/cli/billing.ts', 'cli/platform-operator': 'src/cli/platform-operator.ts' },
   outdir: 'dist',
   bundle: true,
   platform: 'node',

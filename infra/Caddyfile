@@ -17,6 +17,13 @@
 		-Server
 	}
 
+	# Once the web operator console (/platform) is in use, nothing outside the stack needs /api/v1/platform/* (the console
+	# reaches the API over the internal network). Uncomment to keep the operator API and sign-in off the public internet:
+	# @platform path /api/v1/platform/*
+	# handle @platform {
+	# 	respond 404
+	# }
+
 	@api path /api/v1/* /docs
 	handle @api {
 		reverse_proxy api:4000 {

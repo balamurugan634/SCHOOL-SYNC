@@ -138,6 +138,43 @@ create table billing_invoices (
 create unique index billing_invoices_number_uq on billing_invoices (number);
 create index billing_invoices_tenant_idx on billing_invoices (tenant_id, issued_at);`,
   },
+  {
+    // Platform operator console: operator accounts + their rotating-refresh sessions, and a payment reference on our invoices.
+    id: 3,
+    sql: `
+create table platform_operators (
+  id uuid primary key,
+  email text not null,
+  display_name text not null,
+  password_hash text not null,
+  status text not null default 'active',
+  must_change_password boolean not null default true,
+  failed_attempts integer not null default 0,
+  locked_until timestamptz,
+  last_login_at timestamptz,
+  password_changed_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create unique index platform_operators_email_uq on platform_operators (email);
+create table platform_sessions (
+  id uuid primary key,
+  operator_id uuid not null references platform_operators(id) on delete cascade,
+  refresh_hash text not null,
+  prev_refresh_hash text,
+  ip text,
+  user_agent text,
+  created_at timestamptz not null default now(),
+  last_used_at timestamptz not null default now(),
+  expires_at timestamptz not null,
+  revoked_at timestamptz,
+  revoked_reason text
+);
+create index platform_sessions_operator_idx on platform_sessions (operator_id, revoked_at);
+alter table billing_invoices add column payment_reference text;
+create index platform_audit_at_idx on platform_audit (id desc);
+create index platform_audit_tenant_idx on platform_audit (tenant_code, id desc);`,
+  },
 ];
 
 /** Creates the control database + applies pending control migrations. Idempotent; call on boot and from CLIs. */

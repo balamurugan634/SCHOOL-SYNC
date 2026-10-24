@@ -75,10 +75,22 @@ export function AppShell({ experience, children }: { experience: Experience; chi
       <div className="flex">
         {/* ≥ 1024: 248 px sidebar (collapsible to a 72 px rail) · 768–1023: rail · < 768: drawer / bottom bar */}
         <aside
-          className={cn('sticky top-[var(--banner-h,0px)] hidden h-[calc(100dvh-var(--banner-h,0px))] shrink-0 border-r border-border bg-surface transition-[width] duration-200 ease-[var(--ease-std)] md:block', collapsed ? 'w-[72px]' : 'w-[72px] lg:w-[248px]')}
+          className={cn('sticky top-[var(--banner-h,0px)] z-30 hidden h-[calc(100dvh-var(--banner-h,0px))] shrink-0 border-r border-border bg-surface transition-[width] duration-200 ease-[var(--ease-std)] md:block', collapsed ? 'w-[72px]' : 'w-[72px] lg:w-[248px]')}
           aria-label="Sidebar"
         >
-          <SidebarBody groups={groups} current={current?.item.id ?? null} experience={experience} collapsed={collapsed} onToggle={toggleCollapsed} />
+          <SidebarBody groups={groups} current={current?.item.id ?? null} experience={experience} collapsed={collapsed} />
+          {/* one toggle for both states, on the sidebar's edge where the eye looks for it (desktop widths only: below 1024 px the sidebar is always a rail) */}
+          <IconButton
+            label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            tooltipSide="right"
+            variant="secondary"
+            size="icon-sm"
+            onClick={toggleCollapsed}
+            aria-expanded={!collapsed}
+            className="absolute -right-3.5 top-[72px] z-50 hidden size-7 rounded-full border-border-strong bg-surface shadow-card hover:bg-surface-subtle lg:inline-flex"
+          >
+            {collapsed ? <ChevronsRight className="size-4" /> : <ChevronsLeft className="size-4" />}
+          </IconButton>
         </aside>
 
         <div className="flex min-w-0 flex-1 flex-col">
@@ -151,7 +163,7 @@ function Topbar({ experience, onMenu, showMenu, context }: { experience: Experie
   );
 }
 
-function SidebarBody({ groups, current, experience, inDrawer, collapsed, onToggle }: { groups: NavGroup[]; current: string | null; experience: Experience; inDrawer?: boolean; collapsed?: boolean; onToggle?: () => void }) {
+function SidebarBody({ groups, current, experience, inDrawer, collapsed }: { groups: NavGroup[]; current: string | null; experience: Experience; inDrawer?: boolean; collapsed?: boolean }) {
   const site = useSite();
   const { base, me } = useMeContext();
   const isLg = useMediaQuery('(min-width: 1024px)', true);
@@ -180,10 +192,9 @@ function SidebarBody({ groups, current, experience, inDrawer, collapsed, onToggl
       <div className={cn('flex h-[60px] shrink-0 items-center gap-2.5 border-b border-border', rail ? 'justify-center px-0' : 'px-4')}>
         <SchoolMark name={site?.name ?? 'School'} logoUrl={site?.logoUrl} size="sm" />
         {!rail && <p className="min-w-0 flex-1 truncate text-sm font-semibold">{site?.shortName ?? site?.name}</p>}
-        {!inDrawer && !rail && onToggle && <IconButton label="Collapse sidebar" size="icon-sm" onClick={onToggle}><ChevronsLeft /></IconButton>}
       </div>
 
-      <nav className="flex-1 overflow-y-auto px-3 py-3" aria-label="Main">
+      <nav className="relative flex-1 overflow-y-auto px-3 py-3" aria-label="Main">
         {flat ? (
           <ul className="space-y-0.5">
             {groups[0]?.items.map((i) => <NavLink key={i.id} item={i} base={base} active={current === i.id} rail={rail} />)}
@@ -232,11 +243,6 @@ function SidebarBody({ groups, current, experience, inDrawer, collapsed, onToggl
             </span>
           )}
         </Link>
-        {!inDrawer && collapsed && onToggle && (
-          <div className="mt-1 flex justify-center">
-            <IconButton label="Expand sidebar" size="icon-sm" onClick={onToggle}><ChevronsRight /></IconButton>
-          </div>
-        )}
       </div>
     </div>
   );

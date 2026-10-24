@@ -1,6 +1,6 @@
 # API index (generated)
 
-390 operations, API version 1.0.0. Base: `/api/v1`, header `X-Tenant: <site code>`, `Authorization: Bearer <token>`. Full schemas: `docs/openapi.json`; live docs: `/docs`.
+431 operations, API version 1.0.0. Base: `/api/v1`, header `X-Tenant: <site code>`, `Authorization: Bearer <token>`. Full schemas: `docs/openapi.json`; live docs: `/docs`.
 Regenerate with `pnpm --filter @school-sync/api openapi`.
 
 ## Academics
@@ -133,6 +133,29 @@ Regenerate with `pnpm --filter @school-sync/api openapi`.
 |---|---|---|
 | `POST` | `/api/v1/devices` | Register / refresh this device’s FCM token |
 | `POST` | `/api/v1/devices/unregister` |  |
+
+## Email
+
+| | Path | Summary |
+|---|---|---|
+| `GET` | `/api/v1/settings/email/accounts` | The school’s email accounts plus the read-only SchoolSync default (platform) sender. Passwords are never returned (`passwordSet` only) |
+| `POST` | `/api/v1/settings/email/accounts` | Add an email account (SMTP). The password is encrypted at rest and write-only. Ports 25/465/587/2525 only; private/loopback/metadata hosts are refused |
+| `PATCH` | `/api/v1/settings/email/accounts/{id}` | Change an account (any subset). `smtpPassword` omitted = keep, "" = remove, text = replace. Switching the default account off hands the default back to the platform sender |
+| `DELETE` | `/api/v1/settings/email/accounts/{id}` | Delete an account. Mail already queued for it goes out through the default sender |
+| `POST` | `/api/v1/settings/email/accounts/{id}/default` | Make this the default outgoing account (the previous default is cleared in the same transaction; the account must be enabled) |
+| `POST` | `/api/v1/settings/email/use-platform-default` | Stop using a school account by default: mail goes through the SchoolSync default sender again |
+| `POST` | `/api/v1/settings/email/accounts/{id}/test` | Send a test email through this account right now (to the signed-in admin, or a typed address). Answers 200 with { ok, error }: the error is plain-language and sanitised. 5 per hour per school (429 beyond that), 10 s connect/greeting timeouts |
+| `POST` | `/api/v1/settings/email/platform/test` | Send a test email through the SchoolSync default sender to the signed-in admin’s own address |
+| `GET` | `/api/v1/settings/email/queue/summary` | Counts per status, next due time and retention |
+| `GET` | `/api/v1/settings/email/queue` | The email queue, newest first (filter by status, account, date range, search in recipients / subject) |
+| `GET` | `/api/v1/settings/email/queue/{id}` | One queued email with its error and a body preview (one-time messages such as password resets show no body) |
+| `DELETE` | `/api/v1/settings/email/queue/{id}` | Delete a queue entry (not while it is being sent) |
+| `POST` | `/api/v1/settings/email/queue/{id}/send-now` | Send this email as soon as the worker can (Not Sent or Error; the retry wait is skipped). It still goes out one message at a time |
+| `POST` | `/api/v1/settings/email/queue/{id}/retry` | Put a failed or cancelled email back in the queue with fresh attempts |
+| `POST` | `/api/v1/settings/email/queue/{id}/cancel` | Cancel an email that has not been sent yet |
+| `POST` | `/api/v1/settings/email/queue/bulk` | Apply send_now / retry / cancel / delete to up to 200 entries; entries in a state the action does not apply to are skipped |
+| `POST` | `/api/v1/settings/email/queue/flush` | Flush now: make every waiting email due and start the worker (non-blocking; sending stays one message at a time) |
+| `POST` | `/api/v1/settings/email/queue/clear` | Delete finished entries (sent / error / cancelled) older than N days (0 = all of them) |
 
 ## Events
 
@@ -365,17 +388,45 @@ Regenerate with `pnpm --filter @school-sync/api openapi`.
 | `POST` | `/api/v1/payments/{id}/mock-complete` | DEV ONLY (mock gateway, absent in production): simulate the payer completing checkout; runs through the real webhook path |
 | `POST` | `/api/v1/payments/webhook/{provider}` | Payment-gateway webhook (public; HMAC-signature verified over the raw body; idempotent). Resolves the school from X-Tenant, else the order metadata, else the Host. Responds 200 for any validly signed event. NOTE: the Razorpay adapter is untested against the live Razorpay API |
 
+## Platform auth
+
+| | Path | Summary |
+|---|---|---|
+| `POST` | `/api/v1/platform/auth/login` | Operator sign-in (email + password) |
+| `POST` | `/api/v1/platform/auth/refresh` | Rotate the refresh token and get a new access token |
+| `POST` | `/api/v1/platform/auth/logout` | End this operator session |
+| `GET` | `/api/v1/platform/auth/me` | The signed-in operator |
+| `POST` | `/api/v1/platform/auth/change-password` | Change my password (signs out my other sessions) |
+
 ## Platform
 
 | | Path | Summary |
 |---|---|---|
-| `GET` | `/api/v1/platform/tenants` | All sites with license state and latest usage |
-| `POST` | `/api/v1/platform/tenants` | Create a site (new database, default data, first super-admin) |
+| `GET` | `/api/v1/platform/tenants` | All sites with license state, seats and latest usage (filterable, optionally paged) |
+| `POST` | `/api/v1/platform/tenants` | Create a site (new database, default data, first super-admin). The temporary admin password is returned once. |
 | `PUT` | `/api/v1/platform/tenants/{code}/subscription` | Create/renew the per-student subscription for an academic year |
 | `POST` | `/api/v1/platform/tenants/{code}/status` | Suspend / resume a site |
-| `GET` | `/api/v1/platform/tenants/{code}/billing` |  |
+| `GET` | `/api/v1/platform/tenants/{code}/billing` | Raw usage snapshots and invoices of a site |
 | `POST` | `/api/v1/platform/tenants/{code}/invoices` | Issue the committed-seats invoice or a true-up |
+| `GET` | `/api/v1/platform/tenants/{code}/invoices` | All invoices of a school (newest first) |
 | `POST` | `/api/v1/platform/billing/snapshot` | Meter all active sites now (also run daily) |
+| `GET` | `/api/v1/platform/config` | What this server allows (demo data, environment) |
+| `GET` | `/api/v1/platform/operators` | Operator accounts |
+| `POST` | `/api/v1/platform/operators` | Create an operator (temporary password shown once) |
+| `POST` | `/api/v1/platform/operators/{id}/disable` | Disable an operator and sign them out |
+| `POST` | `/api/v1/platform/operators/{id}/enable` | Enable an operator again |
+| `POST` | `/api/v1/platform/operators/{id}/reset-password` | Reset an operator’s password to a new temporary one (shown once) |
+| `GET` | `/api/v1/platform/tenants/check-code` | Is this site code valid and free? |
+| `GET` | `/api/v1/platform/tenants/{code}` | One school: profile, features, domains, subscription state, seats, subscription history |
+| `PATCH` | `/api/v1/platform/tenants/{code}` | Update a school’s name, brand colour, time zone and feature switches |
+| `GET` | `/api/v1/platform/tenants/{code}/subscriptions` | Subscription history of a school (newest first) |
+| `GET` | `/api/v1/platform/tenants/{code}/usage` | Daily usage snapshots (time series) of a school |
+| `POST` | `/api/v1/platform/tenants/{code}/usage/snapshot` | Meter this school now |
+| `GET` | `/api/v1/platform/invoices` | Invoices across all schools |
+| `POST` | `/api/v1/platform/invoices/{id}/pay` | Mark an issued invoice as paid (paid date + reference) |
+| `POST` | `/api/v1/platform/invoices/{id}/void` | Void an unpaid invoice (reason required) |
+| `GET` | `/api/v1/platform/billing/overview` | Seats vs committed, true-up due and outstanding invoices across schools |
+| `GET` | `/api/v1/platform/audit` | Platform audit log (newest first, keyset pagination) |
 
 ## Profile
 

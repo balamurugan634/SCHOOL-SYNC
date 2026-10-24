@@ -97,6 +97,7 @@ No N+1 queries (batch with `inArray`/joins/`Map.groupBy`); every list is paginat
 ## 8. Schema changes
 
 You may **add** tables/columns/indexes in the Drizzle schema files for your own domain (`src/db/tenant/schema/*.ts`). Don't rename/remove existing columns or touch other domains' tables beyond adding something you need (mention it in your report). **Do not run `drizzle-kit generate`** and don't edit `src/db/tenant/migrations/` — the lead regenerates the baseline migration at the end. Tests build the schema directly from the TypeScript (`TENANT_SCHEMA_MODE=push`), so they always reflect your changes.
+  *Exception for features that must reach schools that already exist before the baseline is regenerated:* generate an **incremental** migration (`drizzle-kit generate --name <feature>`, e.g. `0001_email_accounts_queue`) and keep its SQL, snapshot and journal entry; `pnpm site:migrate` then upgrades every existing school. Check first that the diff contains only your tables (generate into a scratch copy of `migrations/`).
 
 ## 9. Tests (required)
 

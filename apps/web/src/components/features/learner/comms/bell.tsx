@@ -48,7 +48,7 @@ export function LiveNotificationsBell() {
         <IconButton label={unread > 0 ? `Notifications, ${unread} unread` : 'Notifications'} className="relative">
           <Bell />
           {unread > 0 && (
-            <span className="absolute right-0.5 top-0.5 grid min-w-4 place-items-center rounded-full bg-brand px-1 text-[11px] font-semibold leading-4 text-on-brand ring-2 ring-bg" aria-hidden>
+            <span className="absolute right-0.5 top-0.5 grid min-w-4 place-items-center rounded-full bg-accent px-1 text-[11px] font-semibold leading-4 text-on-accent ring-2 ring-bg" aria-hidden>
               {unread > 99 ? '99+' : unread}
             </span>
           )}

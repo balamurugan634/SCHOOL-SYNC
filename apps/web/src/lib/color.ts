@@ -162,7 +162,7 @@ export function brandCss(input: string | null | undefined): string {
 }
 
 /** Subtle role tints (design.md §2.3). Management uses the brand. The `*_SOFT` values are their illustration companions (see globals.css --role-*-soft). */
-export const ROLE_TINT = { student: '#C9731A', parent: '#B04A6F', teacher: '#3F63B5', management: 'var(--brand)' } as const;
+export const ROLE_TINT = { student: '#D1411B', parent: '#B04A6F', teacher: '#3F63B5', management: 'var(--brand)' } as const;
 
 /** Initials for the school mark / avatars. */
 export function initials(name: string, max = 2): string {

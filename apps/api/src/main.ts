@@ -1,6 +1,7 @@
 import { buildApp } from './app';
 import { config } from './config';
 import { snapshotAllTenants } from './core/billing/metering';
+import { bootstrapFirstOperator } from './core/platform/operators';
 import { startJobScheduler } from './core/jobs';
 import { startPushSweeper } from './core/notify/queue';
 import { ensureControlSchema } from './core/tenancy/control-db';
@@ -9,6 +10,7 @@ import { shutdownTenancy } from './core/tenancy/provision';
 async function main() {
   await ensureControlSchema();
   const app = await buildApp();
+  await bootstrapFirstOperator(app.log).catch((e) => app.log.error(e, 'platform operator bootstrap failed'));
   await app.listen({ host: config.HOST, port: config.PORT });
 
   const stops: (() => void)[] = [];

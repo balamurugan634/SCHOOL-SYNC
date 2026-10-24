@@ -1,6 +1,6 @@
 import { and, asc, eq, inArray, lt, lte, or } from 'drizzle-orm';
 import { devices, notificationPreferences, notifications, users } from '../../db/tenant/schema';
-import { sendMail } from '../mailer';
+import { enqueueMails, type EnqueueInput } from '../email';
 import { getSetting } from '../settings';
 import type { Executor } from '../tenancy/pools';
 import type { TenantInfo } from '../tenancy/registry';
@@ -213,12 +213,21 @@ async function sendEmails(db: Executor, tenant: TenantInfo, rows: (typeof notifi
   const wanted = rows.filter((n) => ids.has(n.id));
   const addr = await db.select({ id: users.id, email: users.email }).from(users).where(inArray(users.id, [...new Set(wanted.map((n) => n.userId))]));
   const emailOf = new Map(addr.map((u) => [u.id, u.email]));
+  const mails: EnqueueInput[] = [];
   for (const n of wanted) {
     const to = emailOf.get(n.userId);
     if (!to) continue;
     const isPrivate = privateCategories.includes(n.type.split('.')[0]!);
     const subject = isPrivate ? `${tenant.name}: you have a new update` : n.title;
     const text = isPrivate ? 'You have a new update. Sign in to the app to view it.' : [n.body, 'Open the app for details.'].filter(Boolean).join('\n\n');
-    await sendMail({ to, subject, text }).catch((e) => console.error(`[mail:${tenant.code}] notification email failed`, e instanceof Error ? e.message : e));
+    // announcements fan out to the whole school → bulk priority (9); everything else is normal (5)
+    const bulk = n.type.startsWith('announcement.');
+    mails.push({ to, subject, text, priority: bulk ? 9 : 5, referenceType: bulk ? 'announcement' : 'notification', referenceId: n.id });
   }
+  // queued in one insert; the worker sends them one at a time. A bad address must not break push delivery.
+  await enqueueMails(tenant, mails, { db }).catch(async (e) => {
+    console.error(`[mail:${tenant.code}] notification emails could not be queued`, e instanceof Error ? e.message : e);
+    // one invalid address fails the whole batch: retry per message so the valid ones still go out
+    for (const m of mails) await enqueueMails(tenant, [m], { db }).catch(() => undefined);
+  });
 }

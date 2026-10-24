@@ -15,10 +15,18 @@ import { PDF, guardianOf, parentOnlyIn, parentWithout, sectionWithout, sectionsO
 
 // the email channel is exercised with a fake mailer
 const mails: { to: string; subject: string; text: string }[] = [];
-vi.mock('../src/core/mailer', () => ({
-  sendMail: async (m: { to: string; subject: string; text: string }) => {
-    mails.push(m);
+vi.mock('../src/core/email', () => ({
+  enqueueMails: async (_tenant: unknown, list: { to: string; subject: string; text: string }[]) => {
+    mails.push(...list);
+    return list.map(() => ({ id: 'mock' }));
   },
+  enqueueMail: async (_tenant: unknown, m: { to: string; subject: string; text: string }) => {
+    mails.push(m);
+    return { id: 'mock' };
+  },
+  kickFlush: () => undefined,
+  flushSchool: async () => ({ sent: 0, failed: 0, retrying: 0, busy: false }),
+  EmailInputError: class EmailInputError extends Error {},
 }));
 
 let s: TestSchool;

@@ -82,7 +82,7 @@ export async function buildApp(opts: { logger?: boolean } = {}): Promise<App> {
       info: { title: 'SchoolSync API', version: API_VERSION, description: 'Multi-tenant school ERP API. Every request is bound to a school via Host or `X-Tenant`.' },
       servers: [{ url: config.PUBLIC_API_URL }],
       components: {
-        securitySchemes: { bearer: { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, platformKey: { type: 'apiKey', in: 'header', name: 'X-Platform-Key' }, tenant: { type: 'apiKey', in: 'header', name: 'X-Tenant' } },
+        securitySchemes: { bearer: { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, platformKey: { type: 'apiKey', in: 'header', name: 'X-Platform-Key' }, operatorToken: { type: 'http', scheme: 'bearer', bearerFormat: 'JWT', description: 'Platform operator access token from POST /platform/auth/login' }, tenant: { type: 'apiKey', in: 'header', name: 'X-Tenant' } },
       },
       security: [{ bearer: [], tenant: [] }],
     },

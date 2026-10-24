@@ -17,6 +17,7 @@
     "dev:db": "node scripts/dev-db.mjs",
     "billing": "tsx src/cli/billing.ts",
     "site:drop": "tsx src/cli/site-drop.ts",
+    "platform:operator": "tsx src/cli/platform-operator.ts",
     "site:reset-demo": "tsx src/cli/site-drop.ts --code demo --yes && tsx src/cli/site-create.ts --code demo --name \"Green Valley Public School\" --admin-email admin@greenvalley.edu --admin-password Demo@12345 --price 150 --seats 500 --color '#1B6B4F' --demo"
   },
   "dependencies": {

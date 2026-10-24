@@ -21,6 +21,7 @@
     "site:seed-demo": "pnpm --filter @school-sync/api site:seed-demo",
     "billing": "pnpm --filter @school-sync/api billing",
     "site:reset-demo": "pnpm --filter @school-sync/api site:reset-demo",
-    "site:drop": "pnpm --filter @school-sync/api site:drop"
+    "site:drop": "pnpm --filter @school-sync/api site:drop",
+    "platform:operator": "pnpm --filter @school-sync/api platform:operator"
   }
 }

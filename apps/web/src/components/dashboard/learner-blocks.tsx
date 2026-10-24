@@ -52,7 +52,7 @@ export function TimetableCard({ tt, href, title = 'Today’s classes' }: { tt: T
                       </p>
                     )}
                   </div>
-                  {now && <Badge variant="primary">Now</Badge>}
+                  {now && <Badge variant="accent">Now</Badge>}
                   {tt.next?.periodId === e.periodId && !now && <Badge variant="outline">Next</Badge>}
                 </li>
               );

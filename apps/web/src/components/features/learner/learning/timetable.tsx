@@ -147,7 +147,7 @@ function WeekGrid({ g, monday, todayIso: today, currentPeriodId }: { g: Timetabl
                     const isNow = date === today && currentPeriodId === p.id;
                     return (
                       <td key={d} className={cn('relative min-w-[120px] border-b border-border px-3 py-3 align-top', date === today && 'bg-brand-soft/40', isNow && 'bg-brand-soft')}>
-                        {isNow && <Badge variant="primary" className="mb-1">Now</Badge>}
+                        {isNow && <Badge variant="accent" className="mb-1">Now</Badge>}
                         <Lesson g={g} dow={d} periodId={p.id} />
                       </td>
                     );
@@ -197,7 +197,7 @@ function DayList({ g, monday, todayIso: today, currentPeriodId }: { g: Timetable
                   <div className="min-w-0 flex-1 text-sm">
                     <Lesson g={g} dow={day} periodId={p.id} />
                   </div>
-                  {isNow && <Badge variant="primary">Now</Badge>}
+                  {isNow && <Badge variant="accent">Now</Badge>}
                 </li>
               );
             })}

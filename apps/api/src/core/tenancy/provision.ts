@@ -19,7 +19,7 @@ import { upsertSubscription, type SubscriptionInput } from '../billing/invoicing
 import { academicYearSpan, seedTenantDefaults, syncSystemRoles } from './seed-defaults';
 
 export const SITE_CODE_RE = /^[a-z][a-z0-9-]{2,30}$/;
-const RESERVED = new Set(['www', 'api', 'admin', 'app', 'platform', 'static', 'assets', 'mail', 'status', 'docs', 'localhost']);
+export const RESERVED_SITE_CODES = new Set(['www', 'api', 'admin', 'app', 'platform', 'static', 'assets', 'mail', 'status', 'docs', 'localhost']);
 
 function migrationsDir(): string {
   const here = dirname(fileURLToPath(import.meta.url));
@@ -68,6 +68,8 @@ export interface CreateTenantInput {
   features?: Partial<TenantFeatures>;
   /** Commercial terms (per student, per academic year). Year defaults to the current April–March year. */
   subscription?: Omit<SubscriptionInput, 'tenantCode' | 'academicYear' | 'startsOn' | 'endsOn'> & Partial<Pick<SubscriptionInput, 'academicYear' | 'startsOn' | 'endsOn'>>;
+  /** who is creating the site, for the platform audit log (default `cli`) and extra audit detail */
+  audit?: { actor: string; detail?: Record<string, unknown> };
 }
 
 export interface CreateTenantResult {
@@ -81,7 +83,7 @@ export interface CreateTenantResult {
  */
 export async function createTenant(input: CreateTenantInput): Promise<CreateTenantResult> {
   const code = input.code.toLowerCase();
-  if (!SITE_CODE_RE.test(code) || RESERVED.has(code)) throw new Error(`Invalid site code "${input.code}". Use 3–31 chars: a–z, 0–9, hyphen; start with a letter.`);
+  if (!SITE_CODE_RE.test(code) || RESERVED_SITE_CODES.has(code)) throw new Error(`Invalid site code "${input.code}". Use 3–31 chars: a–z, 0–9, hyphen; start with a letter.`);
   await ensureControlSchema();
   const cdb = controlDb();
   const dbName = `${config.TENANT_DB_PREFIX}${code.replace(/-/g, '_')}`;
@@ -133,10 +135,10 @@ export async function createTenant(input: CreateTenantInput): Promise<CreateTena
     }
 
     const [done] = await cdb.update(tenants).set({ status: 'active', schemaVersion: latestMigrationTag() }).where(eq(tenants.id, tenant.id)).returning();
-    await cdb.insert(platformAudit).values({ actor: 'cli', action: 'tenant.create', tenantCode: code, detail: { dbName: tenant.dbName } });
+    await cdb.insert(platformAudit).values({ actor: input.audit?.actor ?? 'cli', action: 'tenant.create', tenantCode: code, detail: { dbName: tenant.dbName, ...input.audit?.detail } });
     if (input.subscription) {
       const span = academicYearSpan();
-      await upsertSubscription({ academicYear: span.name, startsOn: span.startDate, endsOn: span.endDate, ...input.subscription, tenantCode: code });
+      await upsertSubscription({ academicYear: span.name, startsOn: span.startDate, endsOn: span.endDate, ...input.subscription, tenantCode: code }, input.audit?.actor ?? 'cli');
     }
     invalidateTenant(code);
     return { tenant: done!, admin: { username, password, generated: !input.adminPassword } };

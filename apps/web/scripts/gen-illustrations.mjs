@@ -13,8 +13,8 @@ const OUT = resolve(new URL('../src/components/illustrations/generated.tsx', imp
 const PLACEHOLDERS = {
   '#0E5A63': 'var(--ill-brand)',
   '#CFE6E8': 'var(--ill-brand-soft)',
-  '#C9731A': 'var(--ill-accent)',
-  '#FBEFD9': 'var(--ill-accent-soft)',
+  '#D1411B': 'var(--ill-accent)',
+  '#FCE7DD': 'var(--ill-accent-soft)',
   '#F4F1EC': 'var(--ill-paper)',
   '#1C1A17': 'var(--ill-ink)',
 };

@@ -190,6 +190,7 @@ function SectionCreateDialog({ defaultYearId, onClose }: { defaultYearId?: strin
   const grades = useGradeList();
   const years = useYearList();
   const staff = useStaffPicker();
+  const access = useAccess();
   const form = useZodForm(sectionCreateSchema, { defaultValues: { gradeId: '', academicYearId: defaultYearId, name: '', room: '', classTeacherId: undefined } });
   const [err, setErr] = React.useState<string | null>(null);
   return (
@@ -208,7 +209,24 @@ function SectionCreateDialog({ defaultYearId, onClose }: { defaultYearId?: strin
         })}
       >
         <div className="grid gap-4 sm:grid-cols-2">
-          <FormSelect control={form.control} name="gradeId" label="Grade" required options={gradeOptions(grades.data?.filter((g) => g.isActive))} placeholder="Choose a grade" />
+          <FormSelect
+            control={form.control}
+            name="gradeId"
+            label="Grade"
+            required
+            options={gradeOptions(grades.data?.filter((g) => g.isActive))}
+            placeholder="Choose a grade"
+            hint={
+              <>
+                Only active grades are listed.{' '}
+                {access.ok('academics:create') ? (
+                  <Link href={`${paths.classes}?tab=grades`} className="font-medium text-brand-ink underline underline-offset-4">Add or reactivate a grade</Link>
+                ) : (
+                  'Ask an administrator to add a missing grade.'
+                )}
+              </>
+            }
+          />
           <FormSelect control={form.control} name="academicYearId" label="Academic year" options={yearOptions(years.data)} />
         </div>
         <div className="grid gap-4 sm:grid-cols-3">

@@ -19,16 +19,16 @@ appear, so a runtime string replace of the six hexes fully re-themes an asset.
 |---|---|---|---|
 | `#0E5A63` | brand | `--brand` (school colour, normalised, design.md 2.2) | main objects, plates' details, the ground slab at 30 % opacity |
 | `#CFE6E8` | brand-soft | a **stronger tint of the school colour** than the UI `--brand-soft`: `oklch(0.92, min(C*0.45, 0.05), hue)` of the normalised brand | the backdrop plate behind each scene, calendar dots, windows |
-| `#C9731A` | accent | `--accent` (amber). Onboarding heroes use the role tint instead, see below | one small highlight per scene: badge, flag, today, key |
-| `#FBEFD9` | accent-soft | `--accent-soft` (or the soft tint of the role colour) | highlighted row, pencil wood |
+| `#D1411B` | accent | `--accent` (vermilion). Onboarding heroes use the role tint instead, see below | one small highlight per scene: badge, flag, today, key |
+| `#FCE7DD` | accent-soft | `--accent-soft` (or the soft tint of the role colour) | highlighted row, pencil wood |
 | `#F4F1EC` | paper | `--surface-subtle` (card faces, book pages) | cards, notebook label, calendar face |
 | `#1C1A17` | ink | `--ink` | only 1.5 px detail lines and tiny details (binder rings, clock hands) |
 
-Dark mode: map the same six to the dark tokens, e.g. brand `#3FA6B1` (lifted), brand-soft about `#1F3C40`, accent `#E3A547`,
-accent-soft `#2B2110`, paper `#2B2927`, ink `#EDEAE4`. These dark values are a suggestion and were not rendered or reviewed yet, so check them once in the app.
+Dark mode: map the same six to the dark tokens, e.g. brand `#3FA6B1` (lifted), brand-soft about `#1F3C40`, accent `#FF7F5A`,
+accent-soft `#2E1812`, paper `#2B2927`, ink `#EDEAE4`. These dark values are a suggestion and were not rendered or reviewed yet, so check them once in the app.
 
 Role tints (design.md 2.3) for the four onboarding heroes: replace accent with the role colour and accent-soft with its soft tint
-(Student keeps amber, Parent `#B04A6F`, Teacher `#3F63B5`, Management uses `--brand`).
+(Student keeps the accent, Parent `#B04A6F`, Teacher `#3F63B5`, Management uses `--brand`).
 
 ## 2. Recolouring at runtime
 
@@ -36,10 +36,10 @@ Always replace all six in **one pass** (a regex with a lookup map), never one af
 token gets replaced twice.
 
 ```ts
-const HEX = /#(?:0E5A63|CFE6E8|C9731A|FBEFD9|F4F1EC|1C1A17)/gi;
+const HEX = /#(?:0E5A63|CFE6E8|D1411B|FCE7DD|F4F1EC|1C1A17)/gi;
 const NAMES: Record<string, keyof Theme> = {
-  '#0E5A63': 'brand', '#CFE6E8': 'brandSoft', '#C9731A': 'accent',
-  '#FBEFD9': 'accentSoft', '#F4F1EC': 'paper', '#1C1A17': 'ink',
+  '#0E5A63': 'brand', '#CFE6E8': 'brandSoft', '#D1411B': 'accent',
+  '#FCE7DD': 'accentSoft', '#F4F1EC': 'paper', '#1C1A17': 'ink',
 };
 export const themeSvg = (svg: string, t: Theme) => svg.replace(HEX, (m) => t[NAMES[m.toUpperCase()]]);
 ```

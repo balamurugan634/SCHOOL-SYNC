@@ -239,7 +239,7 @@ function LessonRow({ e, isNext }: { e: TimetableEntry; isNext: boolean }) {
           {covered ? `Covered by ${e.substitution?.substituteTeacherName ?? e.teacherName ?? 'a colleague'}${e.substitution?.reason ? ` · ${e.substitution.reason}` : ''}` : [e.periodName, e.room].filter(Boolean).join(' · ')}
         </p>
       </div>
-      {now && <Badge variant="primary">Now</Badge>}
+      {now && <Badge variant="accent">Now</Badge>}
       {isNext && <Badge variant="outline">Next</Badge>}
       {e.relation === 'covering' && <Badge variant="accent">Covering</Badge>}
       {covered && <Badge variant="neutral">Free</Badge>}

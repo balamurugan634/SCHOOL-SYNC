@@ -7,7 +7,7 @@ Supersedes `docs/DESIGN.md` (removed). If code and this file disagree, fix the c
 
 ## 1. Direction: "Paper & Ink"
 
-A calm, editorial look for a school: **warm paper surfaces, ink-dark text, one deep teal brand colour, a warm amber accent,
+A calm, editorial look for a school: **warm paper surfaces, ink-dark text, one deep teal brand colour, a vermilion accent,
 a clean geometric sans (Manrope) for display type and a precise sans (Inter) for the interface.** It feels like a well-made school diary — trustworthy
 for parents, quick for teachers, and information-rich for the office — and it does not look like a stock admin template.
 
@@ -55,17 +55,17 @@ chroma ≤ 0.14, lightness 0.36–0.50 for the solid colour, and verify white te
 Test any new school colour against `#7C3AED`, `#FF0066`, `#00FF00`, `#FFEB3B`, `#000` — all must still look sober.
 
 ### 2.3 Accent and role tints
-* **Accent (amber)** `#C9731A` (marks/fills), `--accent-ink` `#8A4B00` (text), `--accent-soft` `#FBEFD9`; dark `#E3A547` / `#2B2110`.
+* **Accent (vermilion)** `#D1411B` (marks/fills; white text on it is 4.7:1, `--on-accent`), `--accent-ink` `#A93310` (text), `--accent-soft` `#FCE7DD`; dark `#FF7F5A` (text on it `#1C1A17`) / `#2E1812`. Teal and vermilion are near-complements on warm paper. Vermilion is never the colour of an error: errors are crimson (see `danger` below) and warnings stay amber.
   Used for "today", achievements, highlights, one small thing per screen — never for buttons.
 * **Role tints** (subtle, consistent; only on the role chip dot, avatar ring, onboarding illustration accent and the
-  sidebar sub-label — never on buttons or large areas): Student `#C9731A` · Parent `#B04A6F` · Teacher `#3F63B5` · Management = `--brand`.
+  sidebar sub-label — never on buttons or large areas): Student `#D1411B` · Parent `#B04A6F` · Teacher `#3F63B5` · Management = `--brand`.
 
 ### 2.4 Semantic status (always icon + label, never colour alone)
 | | text/icon | soft bg | dark text / bg |
 |---|---|---|---|
 | success | `#2A7448` | `#E6F3EA` | `#5CC48E` / `#12261C` |
 | warning | `#9A6200` | `#FBF0D9` | `#E5B34D` / `#2B2110` |
-| danger | `#B3412E` | `#FBEAE6` | `#F2877D` / `#2D1513` |
+| danger | `#B3203E` (crimson, deliberately apart from the vermilion accent) | `#FBE8EC` | `#F2879A` / `#2D1319` |
 | info | `--brand-ink` | `--brand-soft` | |
 Attendance mapping: present = success, late = warning, absent = danger, leave = info, half-day = warning (outlined).
 
@@ -189,7 +189,7 @@ Semantic landmarks and headings, one `h1`, skip link; full keyboard operation wi
 ## 15. Quality checklist (review your own screenshots before reporting)
 - [ ] Looks like a designed product, not a template: Manrope display + Inter UI, warm paper surfaces, one accent.
 - [ ] No gradient text/buttons, glow, blobs, concentric circles, fake-UI chips, coloured icon tiles, purple/indigo.
-- [ ] Brand colour < ~10 % of any screen; amber ≤ 1 small element per screen.
+- [ ] Brand colour < ~10 % of any screen; vermilion ≤ a few small elements per screen (count badge, today marker, one highlight).
 - [ ] Illustrations only where §7 allows, all from the shared set, all re-themed by the school colour.
 - [ ] Every table/list/form/chart has loading, empty, error and populated states that work with real API data.
 - [ ] Charts use §2.5 colours in order, have legend + table view + tooltip, and no layout shift.

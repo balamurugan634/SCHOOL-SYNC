@@ -7,7 +7,7 @@ import { academicYears, devices, grades, passwordResets, sections, sessions, stu
 import { audit, type AuditActor } from '../audit';
 import { randomToken, safeEqual, sha256 } from '../crypto';
 import { AppError, forbidden, unauthorized } from '../errors';
-import { sendMail } from '../mailer';
+import { enqueueMail } from '../email';
 import { invalidatePrincipal, getPrincipal, loadPrincipal, type Principal } from '../rbac/principal';
 import type { Executor } from '../tenancy/pools';
 import type { TenantInfo } from '../tenancy/registry';
@@ -238,13 +238,27 @@ export async function changePassword(db: Executor, tenant: TenantInfo, p: Princi
   await audit(db, actor, { action: 'auth.password_changed', entity: 'user', entityId: u.id });
 }
 
-export async function requestPasswordReset(db: Executor, tenant: TenantInfo, identifier: string, log: Parameters<typeof sendMail>[1]): Promise<void> {
+export async function requestPasswordReset(db: Executor, tenant: TenantInfo, identifier: string, log: { warn: (o: object, m?: string) => void }): Promise<void> {
   const user = await findUser(db, identifier);
   if (!user || user.status !== 'active' || !user.email) return; // never reveal whether the account exists
   const token = randomToken(32);
   await db.insert(passwordResets).values({ userId: user.id, tokenHash: sha256(token), expiresAt: new Date(Date.now() + 30 * 60_000) });
   const link = `${config.PUBLIC_WEB_URL.replace('{code}', tenant.code).replace(/\/$/, '')}/reset-password?site=${tenant.code}&token=${token}`;
-  await sendMail({ to: user.email, subject: `${tenant.name}: reset your password`, text: `Hello ${user.displayName},\n\nUse this link within 30 minutes to reset your password:\n${link}\n\nIf you didn't ask for this, ignore this email.` }, log);
+  // Queued (never sent inside the request): the HTTP call returns as soon as the row is stored and a non-blocking flush sends it at once.
+  // `sensitive` keeps the link sealed in the queue, hidden from the admin screen and erased after delivery.
+  await enqueueMail(
+    tenant,
+    {
+      to: user.email,
+      subject: `${tenant.name}: reset your password`,
+      text: `Hello ${user.displayName},\n\nUse this link within 30 minutes to reset your password:\n${link}\n\nIf you didn't ask for this, ignore this email.`,
+      referenceType: 'password_reset',
+      referenceId: user.id,
+      sensitive: true,
+      sendNow: true,
+    },
+    { db },
+  ).catch((e) => log.warn({ err: e instanceof Error ? e.message : String(e), site: tenant.code }, 'password reset email could not be queued'));
 }
 
 export async function resetPassword(db: Executor, tenant: TenantInfo, input: { token: string; newPassword: string }, actor: AuditActor): Promise<void> {

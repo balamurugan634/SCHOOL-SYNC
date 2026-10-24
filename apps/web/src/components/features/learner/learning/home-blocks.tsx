@@ -25,7 +25,7 @@ export function NowNextCard({ tt, href, who }: { tt: TimetableDayResponse; href:
     body = <p className="text-sm text-ink-2">No classes today — it isn’t a school day.</p>;
   } else if (lesson) {
     const now = !!tt.current;
-    tag = <Badge variant={now ? 'primary' : 'outline'}>{now ? 'Now' : 'Next'}</Badge>;
+    tag = <Badge variant={now ? 'accent' : 'outline'}>{now ? 'Now' : 'Next'}</Badge>;
     body = (
       <div className="flex items-start gap-4">
         <div className="min-w-0 flex-1">

@@ -10,8 +10,8 @@
 export const T = {
   B: '#0E5A63', // brand
   BS: '#CFE6E8', // brand-soft
-  A: '#C9731A', // accent
-  AS: '#FBEFD9', // accent-soft
+  A: '#D1411B', // accent (vermilion)
+  AS: '#FCE7DD', // accent-soft
   P: '#F4F1EC', // paper
   I: '#1C1A17', // ink
 };

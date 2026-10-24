@@ -48,6 +48,9 @@ School admins see seats used / committed, state and days left via `GET /api/v1/l
 
 ## Operating it
 
+Day to day this is done in the **operator console** (`/platform`, see README): Schools (create, subscription, renew), Billing (seats against committed, true-up due, issue invoices, mark paid with date and reference, void with a reason) and the audit log. Invoice numbers are `BIL-<year>-<n>`, numbered from the highest number already issued for that year. The same operations remain available as CLI commands and over the key-protected HTTP API:
+
+
 ```bash
 # new school with terms: 500 seats at ₹150 per student for 2026-27, blocking over-admission
 pnpm site:create --code greenvalley --name "Green Valley School" --admin-email principal@gv.edu \

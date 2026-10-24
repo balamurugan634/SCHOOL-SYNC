@@ -7,7 +7,9 @@ import { PageHeader } from '@/components/shell/page-header';
 import { useBranding, useFeatures, useSettings } from '@/lib/client/settings';
 import { useUrlState } from '@/lib/client/url-state';
 import { useUnsavedGuard } from '@/lib/client/use-unsaved-guard';
+import { cn } from '@/lib/cn';
 import { ErrorPanel, LoadingBlock } from '../shared/detail';
+import { EmailArea } from './email/email-area';
 import { BrandingForm } from './branding-form';
 import { FeaturesPanel } from './features-panel';
 import { GroupForm } from './group-form';
@@ -22,6 +24,7 @@ const TABS = [
   { value: 'fees', label: 'Fees' },
   { value: 'library', label: 'Library' },
   { value: 'notifications', label: 'Notifications' },
+  { value: 'email', label: 'Email' },
   { value: 'features', label: 'Features' },
 ] as const;
 type TabKey = (typeof TABS)[number]['value'];
@@ -48,7 +51,7 @@ export function SchoolSettings() {
   const branding = useBranding();
   const features = useFeatures();
 
-  const needs = tab === 'profile' ? branding : tab === 'features' ? features : settings;
+  const needs = tab === 'profile' ? branding : tab === 'features' ? features : tab === 'email' ? null : settings;
 
   return (
     <>
@@ -62,10 +65,12 @@ export function SchoolSettings() {
             </TabsTrigger>
           ))}
         </TabsList>
-        <div className="mt-6 max-w-3xl">
-          {needs.isPending ? (
+        <div className={cn('mt-6', tab !== 'email' && 'max-w-3xl')}>
+          {tab === 'email' ? (
+            <TabsContent value="email" className="mt-0"><EmailArea /></TabsContent>
+          ) : needs?.isPending ? (
             <Loading />
-          ) : needs.isError ? (
+          ) : needs?.isError ? (
             <ErrorPanel error={needs.error} onRetry={() => void needs.refetch()} title="We couldn’t load these settings" />
           ) : (
             <>

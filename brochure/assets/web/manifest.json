@@ -1,0 +1,338 @@
+[
+  {
+    "name": "auth-find-school",
+    "title": "Find your school",
+    "role": "public",
+    "url": "/find-school"
+  },
+  {
+    "name": "auth-sign-in",
+    "title": "Sign in",
+    "role": "public",
+    "url": "/login"
+  },
+  {
+    "name": "auth-welcome-tour",
+    "title": "A short welcome tour",
+    "role": "admin",
+    "url": "/admin"
+  },
+  {
+    "name": "admin-dashboard",
+    "title": "Management dashboard",
+    "role": "admin",
+    "url": "/admin"
+  },
+  {
+    "name": "admin-dashboard-dark",
+    "title": "Dark mode",
+    "role": "admin",
+    "url": "/admin"
+  },
+  {
+    "name": "admin-setup",
+    "title": "Get your school ready",
+    "role": "admin",
+    "url": "/admin/setup"
+  },
+  {
+    "name": "academics-years",
+    "title": "Academic years and terms",
+    "role": "admin",
+    "url": "/admin/academics/years"
+  },
+  {
+    "name": "academics-classes",
+    "title": "Classes and sections",
+    "role": "admin",
+    "url": "/admin/academics/classes"
+  },
+  {
+    "name": "academics-assignments",
+    "title": "Teaching assignments",
+    "role": "admin",
+    "url": "/admin/academics/assignments"
+  },
+  {
+    "name": "academics-timetable",
+    "title": "Timetable editor",
+    "role": "admin",
+    "url": "/admin/academics/timetable"
+  },
+  {
+    "name": "academics-promotions",
+    "title": "Year-end promotion",
+    "role": "admin",
+    "url": "/admin/academics/promotions"
+  },
+  {
+    "name": "people-students",
+    "title": "Student records",
+    "role": "admin",
+    "url": "/admin/people/students"
+  },
+  {
+    "name": "people-student-detail",
+    "title": "Student profile",
+    "role": "admin",
+    "url": "/admin/people/students/01a16070-723f-74de-af24-d05ac37bdd7d"
+  },
+  {
+    "name": "people-student-edit",
+    "title": "Edit a student",
+    "role": "admin",
+    "url": "/admin/people/students/01a16070-723f-74de-af24-d05ac37bdd7d"
+  },
+  {
+    "name": "people-import",
+    "title": "Bulk import",
+    "role": "admin",
+    "url": "/admin/people/students/import"
+  },
+  {
+    "name": "people-staff",
+    "title": "Staff directory",
+    "role": "admin",
+    "url": "/admin/people/staff"
+  },
+  {
+    "name": "people-admissions",
+    "title": "Admissions",
+    "role": "admin",
+    "url": "/admin/people/admissions"
+  },
+  {
+    "name": "attendance-summary",
+    "title": "School attendance",
+    "role": "admin",
+    "url": "/admin/attendance"
+  },
+  {
+    "name": "attendance-leave",
+    "title": "Leave approvals",
+    "role": "admin",
+    "url": "/admin/attendance/leave"
+  },
+  {
+    "name": "exams-list",
+    "title": "Examinations",
+    "role": "admin",
+    "url": "/admin/exams"
+  },
+  {
+    "name": "exams-review",
+    "title": "Mark sheet review",
+    "role": "principal",
+    "url": "/admin/exams/review"
+  },
+  {
+    "name": "exams-report-cards",
+    "title": "Report cards",
+    "role": "admin",
+    "url": "/admin/exams/report-cards"
+  },
+  {
+    "name": "finance-overview",
+    "title": "Finance overview",
+    "role": "accounts",
+    "url": "/admin/finance"
+  },
+  {
+    "name": "finance-invoices",
+    "title": "Invoices",
+    "role": "accounts",
+    "url": "/admin/finance/invoices"
+  },
+  {
+    "name": "finance-invoice-drawer",
+    "title": "Invoice detail and payments",
+    "role": "accounts",
+    "url": "/admin/finance/invoices"
+  },
+  {
+    "name": "finance-structures",
+    "title": "Fee structures",
+    "role": "accounts",
+    "url": "/admin/finance/structures"
+  },
+  {
+    "name": "finance-payments",
+    "title": "Payments and receipts",
+    "role": "accounts",
+    "url": "/admin/finance/payments"
+  },
+  {
+    "name": "finance-reports",
+    "title": "Outstanding and defaulters",
+    "role": "accounts",
+    "url": "/admin/reports/fees"
+  },
+  {
+    "name": "finance-expenses",
+    "title": "Expenses",
+    "role": "accounts",
+    "url": "/admin/finance/expenses"
+  },
+  {
+    "name": "comms-announcements",
+    "title": "Announcements",
+    "role": "office",
+    "url": "/admin/communication/announcements"
+  },
+  {
+    "name": "comms-compose",
+    "title": "Compose with audience targeting",
+    "role": "office",
+    "url": "/admin/communication/announcements/new"
+  },
+  {
+    "name": "comms-events",
+    "title": "Events and calendar",
+    "role": "office",
+    "url": "/admin/communication/events"
+  },
+  {
+    "name": "ops-transport",
+    "title": "Transport",
+    "role": "admin",
+    "url": "/admin/operations/transport"
+  },
+  {
+    "name": "ops-library",
+    "title": "Library",
+    "role": "admin",
+    "url": "/admin/operations/library"
+  },
+  {
+    "name": "reports-hub",
+    "title": "Reports hub",
+    "role": "admin",
+    "url": "/admin/reports"
+  },
+  {
+    "name": "settings-roles",
+    "title": "Roles and permissions",
+    "role": "admin",
+    "url": "/admin/settings/roles/01a16070-714f-7257-89d9-64bafa4e4d4b"
+  },
+  {
+    "name": "settings-users",
+    "title": "User accounts",
+    "role": "admin",
+    "url": "/admin/settings/users"
+  },
+  {
+    "name": "settings-school",
+    "title": "School branding and settings",
+    "role": "admin",
+    "url": "/admin/settings/school"
+  },
+  {
+    "name": "settings-audit",
+    "title": "Audit trail",
+    "role": "admin",
+    "url": "/admin/settings/audit"
+  },
+  {
+    "name": "settings-license",
+    "title": "Subscription and seats",
+    "role": "admin",
+    "url": "/admin/settings/license"
+  },
+  {
+    "name": "teacher-home",
+    "title": "Teacher home",
+    "role": "teacher",
+    "url": "/teacher"
+  },
+  {
+    "name": "teacher-rollcall",
+    "title": "Roll call",
+    "role": "teacher",
+    "url": "/teacher/attendance"
+  },
+  {
+    "name": "teacher-homework",
+    "title": "Homework",
+    "role": "teacher",
+    "url": "/teacher/homework"
+  },
+  {
+    "name": "teacher-marks",
+    "title": "Marks entry",
+    "role": "teacher",
+    "url": "/teacher/marks/sheets/01a16070-7592-77d2-87a6-1235427d02c6"
+  },
+  {
+    "name": "teacher-timetable",
+    "title": "My timetable",
+    "role": "teacher",
+    "url": "/teacher/timetable"
+  },
+  {
+    "name": "teacher-class",
+    "title": "My classes",
+    "role": "teacher",
+    "url": "/teacher/classes/01a16070-722c-76d4-8ac0-d23d0c817b70"
+  },
+  {
+    "name": "student-home",
+    "title": "Student home",
+    "role": "student",
+    "url": "/student"
+  },
+  {
+    "name": "student-tasks",
+    "title": "My tasks",
+    "role": "student",
+    "url": "/student/tasks"
+  },
+  {
+    "name": "student-learning",
+    "title": "Homework and learning",
+    "role": "student",
+    "url": "/student/learning"
+  },
+  {
+    "name": "student-results",
+    "title": "Results",
+    "role": "student",
+    "url": "/student/learning?tab=results"
+  },
+  {
+    "name": "student-calendar",
+    "title": "Calendar",
+    "role": "student",
+    "url": "/student/calendar"
+  },
+  {
+    "name": "student-home-dark",
+    "title": "Student home, dark",
+    "role": "student",
+    "url": "/student"
+  },
+  {
+    "name": "parent-home",
+    "title": "Parent home",
+    "role": "parent",
+    "url": "/parent"
+  },
+  {
+    "name": "parent-attendance",
+    "title": "Attendance",
+    "role": "parent",
+    "url": "/parent/attendance"
+  },
+  {
+    "name": "parent-fees",
+    "title": "Fees and receipts",
+    "role": "parent",
+    "url": "/parent/fees"
+  },
+  {
+    "name": "parent-communication",
+    "title": "Announcements and events",
+    "role": "parent",
+    "url": "/parent/communication"
+  }
+]

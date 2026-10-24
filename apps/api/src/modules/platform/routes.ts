@@ -1,101 +1,96 @@
 import { desc, eq } from 'drizzle-orm';
-import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
+import type { FastifyPluginAsyncZod, ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
-import { config } from '../../config';
-import { issueSeatInvoice, issueTrueUp, upsertSubscription } from '../../core/billing/invoicing';
-import { getLicense, invalidateLicense } from '../../core/billing/license';
-import { snapshotAllTenants } from '../../core/billing/metering';
-import { safeEqual } from '../../core/crypto';
-import { AppError, notFound, unauthorized } from '../../core/errors';
+import {
+  platformInvoiceIssueBody,
+  platformInvoiceIssueOut,
+  platformMeterAllOut,
+  platformSubscriptionBody,
+  platformSubscriptionOut,
+  platformTenantCreateBody,
+  platformTenantCreateOut,
+  platformTenantList,
+  platformTenantListQuery,
+  platformTenantStatusBody,
+  platformTenantStatusOut,
+} from '@school-sync/shared';
+import { platformAccess } from '../../core/platform/access';
+import { actorOfRequest } from '../../core/platform/audit';
+import '../../core/platform/context';
+import { issueInvoice } from '../../core/platform/invoices';
+import * as tenants from '../../core/platform/tenants';
 import { controlDb } from '../../core/tenancy/control-db';
-import { createTenant } from '../../core/tenancy/provision';
-import { invalidateTenant } from '../../core/tenancy/registry';
-import { billingInvoices, platformAudit, tenants, usageSnapshots } from '../../db/control/schema';
+import { billingInvoices, usageSnapshots } from '../../db/control/schema';
+import platformAuthRoutes from './auth-routes';
+import consoleRoutes from './console-routes';
 
-const dateStr = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
-const subscriptionBody = z.object({
-  academicYear: z.string().regex(/^\d{4}-\d{2}$/),
-  startsOn: dateStr,
-  endsOn: dateStr,
-  pricePerStudent: z.number().min(0),
-  licensedStudents: z.number().int().min(0).nullable().optional(),
-  overagePolicy: z.enum(['allow_and_bill', 'block']).optional(),
-  graceDays: z.number().int().min(0).max(180).optional(),
-  trial: z.boolean().optional(),
-  currency: z.string().length(3).optional(),
-});
+const tag = ['Platform'];
+const security: Record<string, string[]>[] = [{ platformKey: [] }, { operatorToken: [] }];
+const cfg = { noTenant: true };
+const codeParam = z.object({ code: z.string().trim().min(1).max(60) });
 
 /**
- * Platform operator API (us, not schools): create sites, manage per-student subscriptions, read usage, issue invoices.
- * Authenticated with `X-Platform-Key`; disabled entirely unless PLATFORM_API_KEY is set. Keep it off the public internet
- * (private network / VPN / separate listener) in production.
+ * Platform API (us, not schools): create sites, manage per-student subscriptions, read usage, issue invoices, run the
+ * operator console. A request is allowed with EITHER the automation key (`X-Platform-Key`, only when PLATFORM_API_KEY is
+ * set) OR an operator's bearer token from `/platform/auth/login`; which one was used is recorded in `platform_audit`.
+ * Keep it off the public internet (private network / VPN / separate listener) in production.
+ *
+ * The first block below is the original key API (same paths); its request bodies and responses only gained fields.
  */
 const platformRoutes: FastifyPluginAsyncZod = async (app) => {
-  app.addHook('onRequest', async (req) => {
-    if (!config.PLATFORM_API_KEY) throw notFound('Route');
-    const key = req.headers['x-platform-key'];
-    if (typeof key !== 'string' || !safeEqual(key, config.PLATFORM_API_KEY)) throw unauthorized('Invalid platform key', 'INVALID_PLATFORM_KEY');
-  });
-  const cfg = { noTenant: true };
-  const tag = ['Platform'];
+  app.decorateRequest('platformActor', undefined as never);
+  app.decorateRequest('platformSessionId', '');
 
-  app.get('/platform/tenants', { config: cfg, schema: { tags: tag, summary: 'All sites with license state and latest usage' } }, async () => {
-    const list = await controlDb().select().from(tenants).orderBy(tenants.code);
-    const data = [];
-    for (const t of list) {
-      const lic = await getLicense(t.id);
-      const [snap] = await controlDb().select().from(usageSnapshots).where(eq(usageSnapshots.tenantId, t.id)).orderBy(desc(usageSnapshots.snapshotDate)).limit(1);
-      data.push({ code: t.code, name: t.name, status: t.status, dbName: t.dbName, license: { state: lic.state, readOnly: lic.readOnly, academicYear: lic.subscription?.academicYear ?? null, licensedStudents: lic.licensedStudents, pricePerStudentMinor: lic.subscription?.pricePerStudentMinor ?? null, endsOn: lic.subscription?.endsOn ?? null }, usage: snap ? { date: snap.snapshotDate, billableStudents: snap.billableStudents, activeStudents: snap.activeStudents, staff: snap.staff } : null });
-    }
-    return { data };
-  });
+  // sign-in routes are public by nature; everything else is behind the key-or-token guard
+  await app.register(platformAuthRoutes);
 
-  app.post(
-    '/platform/tenants',
-    { config: cfg, schema: { tags: tag, summary: 'Create a site (new database, default data, first super-admin)', body: z.object({ code: z.string(), name: z.string().min(2), adminName: z.string().optional(), adminEmail: z.email().optional(), adminPassword: z.string().min(10).optional(), timezone: z.string().optional(), currency: z.string().length(3).optional(), subscription: subscriptionBody.partial({ academicYear: true, startsOn: true, endsOn: true }).optional() }) } },
-    async (req, reply) => {
-      const r = await createTenant(req.body).catch((e: Error) => {
-        throw new AppError(400, 'CREATE_FAILED', e.message);
-      });
-      return reply.status(201).send({ code: r.tenant.code, name: r.tenant.name, admin: r.admin });
-    },
-  );
+  await app.register(async (guarded) => {
+    guarded.addHook('onRequest', platformAccess());
+    const g = guarded.withTypeProvider<ZodTypeProvider>();
 
-  app.put('/platform/tenants/:code/subscription', { config: cfg, schema: { tags: tag, summary: 'Create/renew the per-student subscription for an academic year', params: z.object({ code: z.string() }), body: subscriptionBody } }, async (req) => {
-    const sub = await upsertSubscription({ ...req.body, tenantCode: req.params.code }, 'platform-api').catch((e: Error) => {
-      throw new AppError(400, 'SUBSCRIBE_FAILED', e.message);
+    g.get(
+      '/platform/tenants',
+      { config: cfg, schema: { tags: tag, summary: 'All sites with license state, seats and latest usage (filterable, optionally paged)', querystring: platformTenantListQuery, response: { 200: platformTenantList }, security } },
+      async (req) => tenants.listTenants(req.query),
+    );
+
+    g.post(
+      '/platform/tenants',
+      { config: cfg, schema: { tags: tag, summary: 'Create a site (new database, default data, first super-admin). The temporary admin password is returned once.', body: platformTenantCreateBody, response: { 201: platformTenantCreateOut }, security } },
+      async (req, reply) => reply.status(201).send(await tenants.createSchool(req.body, actorOfRequest(req))),
+    );
+
+    g.put(
+      '/platform/tenants/:code/subscription',
+      { config: cfg, schema: { tags: tag, summary: 'Create/renew the per-student subscription for an academic year', params: codeParam, body: platformSubscriptionBody, response: { 200: platformSubscriptionOut }, security } },
+      async (req) => {
+        const subscription = await tenants.upsertTenantSubscription(req.params.code, req.body, actorOfRequest(req));
+        return { id: subscription.id, academicYear: subscription.academicYear, subscription };
+      },
+    );
+
+    g.post(
+      '/platform/tenants/:code/status',
+      { config: cfg, schema: { tags: tag, summary: 'Suspend / resume a site', params: codeParam, body: platformTenantStatusBody, response: { 200: platformTenantStatusOut }, security } },
+      async (req) => ({ ok: true as const, status: await tenants.setTenantStatus(req.params.code, req.body.status, req.body.reason, actorOfRequest(req)) }),
+    );
+
+    g.get('/platform/tenants/:code/billing', { config: cfg, schema: { tags: tag, summary: 'Raw usage snapshots and invoices of a site', params: codeParam, security } }, async (req) => {
+      const t = await tenants.getTenantRow(req.params.code);
+      const [usage, invoices] = await Promise.all([controlDb().select().from(usageSnapshots).where(eq(usageSnapshots.tenantId, t.id)).orderBy(desc(usageSnapshots.snapshotDate)).limit(90), controlDb().select().from(billingInvoices).where(eq(billingInvoices.tenantId, t.id)).orderBy(desc(billingInvoices.issuedAt))]);
+      return { usage, invoices };
     });
-    return { id: sub.id, academicYear: sub.academicYear };
-  });
 
-  app.post('/platform/tenants/:code/status', { config: cfg, schema: { tags: tag, summary: 'Suspend / resume a site', params: z.object({ code: z.string() }), body: z.object({ status: z.enum(['active', 'suspended', 'archived']) }) } }, async (req) => {
-    const [t] = await controlDb().update(tenants).set({ status: req.body.status }).where(eq(tenants.code, req.params.code)).returning();
-    if (!t) throw notFound('Site');
-    invalidateTenant(t.code);
-    invalidateLicense(t.id);
-    await controlDb().insert(platformAudit).values({ actor: 'platform-api', action: `tenant.${req.body.status}`, tenantCode: t.code });
-    return { ok: true };
-  });
+    g.post(
+      '/platform/tenants/:code/invoices',
+      { config: cfg, schema: { tags: tag, summary: 'Issue the committed-seats invoice or a true-up', params: codeParam, body: platformInvoiceIssueBody, response: { 200: platformInvoiceIssueOut }, security } },
+      async (req) => issueInvoice(req.params.code, req.body, actorOfRequest(req)),
+    );
 
-  app.get('/platform/tenants/:code/billing', { config: cfg, schema: { tags: tag, params: z.object({ code: z.string() }) } }, async (req) => {
-    const [t] = await controlDb().select().from(tenants).where(eq(tenants.code, req.params.code)).limit(1);
-    if (!t) throw notFound('Site');
-    const [usage, invoices] = await Promise.all([controlDb().select().from(usageSnapshots).where(eq(usageSnapshots.tenantId, t.id)).orderBy(desc(usageSnapshots.snapshotDate)).limit(90), controlDb().select().from(billingInvoices).where(eq(billingInvoices.tenantId, t.id)).orderBy(desc(billingInvoices.issuedAt))]);
-    return { usage, invoices };
-  });
+    g.post('/platform/billing/snapshot', { config: cfg, schema: { tags: tag, summary: 'Meter all active sites now (also run daily)', response: { 200: platformMeterAllOut }, security } }, async (req) => tenants.meterAll(actorOfRequest(req)));
 
-  app.post('/platform/tenants/:code/invoices', { config: cfg, schema: { tags: tag, summary: 'Issue the committed-seats invoice or a true-up', params: z.object({ code: z.string() }), body: z.object({ kind: z.enum(['seats', 'true_up']), academicYear: z.string() }) } }, async (req) => {
-    const [t] = await controlDb().select().from(tenants).where(eq(tenants.code, req.params.code)).limit(1);
-    if (!t) throw notFound('Site');
-    const lic = await getLicense(t.id);
-    if (!lic.subscription || lic.subscription.academicYear !== req.body.academicYear) throw new AppError(400, 'NO_SUBSCRIPTION', 'No subscription for that academic year');
-    const inv = await (req.body.kind === 'seats' ? issueSeatInvoice(lic.subscription.id) : issueTrueUp(lic.subscription.id)).catch((e: Error) => {
-      throw new AppError(409, 'INVOICE_FAILED', e.message);
-    });
-    return { invoice: inv };
+    await guarded.register(consoleRoutes);
   });
-
-  app.post('/platform/billing/snapshot', { config: cfg, schema: { tags: tag, summary: 'Meter all active sites now (also run daily)' } }, async () => ({ data: await snapshotAllTenants() }));
 };
 
 export default platformRoutes;

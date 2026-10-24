@@ -16,7 +16,7 @@ const LOGINS = { admin: 'admin@greenvalley.edu', teacher: 't001', student: 'gv20
 const MAX_ROUTES = Number(arg('max', '90'));
 
 const browser = await puppeteer.launch({ executablePath: process.env.CHROME ?? '/usr/bin/google-chrome', headless: 'new', args: ['--no-sandbox', '--disable-gpu', '--disable-dev-shm-usage'] });
-const page = await browser.newPage();
+let page = await browser.newPage();
 await page.setViewport({ width: WIDTH, height: 900 });
 
 /** runs in the page; `rootSel` limits the check to a dialog when one is open */
@@ -27,6 +27,7 @@ const inspect = (rootSel) =>
     const vis = (el) => {
       const cs = getComputedStyle(el);
       if (cs.display === 'none' || cs.visibility === 'hidden' || Number(cs.opacity) === 0) return false;
+      if (el.closest('details:not([open])') && !el.closest('summary')) return false; // collapsed <details> content is not on screen
       const r = el.getBoundingClientRect();
       return r.width > 1 && r.height > 1;
     };
@@ -123,11 +124,14 @@ for (const href of queue) {
     }
 
     // first drawer / dialog opened from a table row
-    const row = await page.$('tbody tr[tabindex], tbody tr');
+    const row = await page.$('tbody tr[tabindex], tbody tr, ul.divide-y > li [role=button]');
     if (row) {
       await row.click().catch(() => {});
-      await sleep(700);
-      if (await page.$('[role=dialog]')) {
+      await sleep(900); // a row either opens a drawer or navigates to the record (phone cards usually navigate)
+      if (!new URL(page.url()).pathname.endsWith(href)) {
+        await page.goto(`${BASE}${href}`, { waitUntil: 'domcontentloaded', timeout: 60000 });
+        await settle();
+      } else if (await page.$('[role=dialog]').catch(() => null)) {
         await check(`${href}  [row drawer]`, '[role=dialog]');
         await page.keyboard.press('Escape');
         await sleep(500);
@@ -162,6 +166,10 @@ for (const href of queue) {
     }
   } catch (e) {
     report.push({ where: href, found: [`SCRIPT ${String(e).slice(0, 100)}`] });
+    // a page that went stale must not poison the rest of the crawl: continue on a fresh tab (same session cookies)
+    try { await page.close(); } catch {}
+    page = await browser.newPage();
+    await page.setViewport({ width: WIDTH, height: 900 });
   }
 }
 await browser.close();

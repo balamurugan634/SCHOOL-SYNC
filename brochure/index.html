@@ -1,0 +1,1283 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SchoolSync Product Catalogue</title>
+<meta name="description" content="SchoolSync: one school ERP for management, teachers, students and parents, on the web and on mobile. Product catalogue with screens from start to finish.">
+<link rel="icon" href="assets/art/favicon.svg" type="image/svg+xml">
+<style>
+@font-face{font-family:'Manrope';src:url(assets/fonts/Manrope-var.ttf) format('truetype');font-weight:200 800;font-display:swap}
+@font-face{font-family:'Inter';src:url(assets/fonts/Inter-400.ttf) format('truetype');font-weight:400;font-display:swap}
+@font-face{font-family:'Inter';src:url(assets/fonts/Inter-500.ttf) format('truetype');font-weight:500;font-display:swap}
+@font-face{font-family:'Inter';src:url(assets/fonts/Inter-600.ttf) format('truetype');font-weight:600;font-display:swap}
+:root{--paper:#F4F1EC;--surface:#fff;--ink:#1C1A17;--ink2:#4F4A42;--ink3:#6F695F;--line:#E7E2D9;--teal:#0E5A63;--teal-ink:#0B474F;--teal-soft:#E3EFF0;--teal-mid:#CFE6E8;--verm:#D1411B;--verm-ink:#A93310;--verm-soft:#FCE7DD;--amber:#C9731A;--amber-ink:#8A4D0E;--amber-soft:#FBEFD9;--s:1;--ease:cubic-bezier(.2,.7,.2,1)}
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:#E8E4DC;scroll-behavior:smooth;scroll-padding-top:64px}
+body{font:400 15px/1.5 Inter,system-ui,-apple-system,'Segoe UI',sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+img{display:block;max-width:100%}
+a{color:inherit}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+/* ── navigation (screen only) ─────────────────────────────────────────── */
+.nav{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:16px;height:52px;padding:0 20px;background:#F4F1EC;border-bottom:1px solid var(--line)}
+.nav-brand{display:flex;align-items:center;gap:9px;text-decoration:none;margin-right:auto}
+.nav-brand b{font:700 16px Manrope,Inter,sans-serif;letter-spacing:-.02em}
+.nav-brand span{font-size:13px;color:var(--ink3);padding-left:10px;border-left:1px solid var(--line)}
+.nav select{height:34px;max-width:46vw;padding:0 30px 0 12px;border:1px solid var(--line);border-radius:8px;background:#fff;font:500 13px Inter,sans-serif;color:var(--ink);cursor:pointer}
+.nav-pdf{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 14px;border-radius:8px;background:var(--teal);color:#fff;font:600 13px Inter,sans-serif;text-decoration:none;transition:background .15s}
+.nav-pdf:hover{background:var(--teal-ink)}
+.nav-pdf .ico{width:16px;height:16px}
+.progress{position:absolute;left:0;bottom:-1px;height:3px;width:100%;background:var(--verm);transform-origin:0 50%;transform:scaleX(0)}
+@media (max-width:640px){.nav{gap:8px;padding:0 12px}.nav-brand span,.nav-brand b{display:none}.nav select{max-width:52vw}}
+
+/* ── deck: every sheet is a fixed-size page scaled to the window ───────── */
+.deck{display:flex;flex-direction:column;align-items:center;gap:26px;padding:26px 16px 90px}
+.sheet{position:relative;width:calc(1122px*var(--s));height:calc(793px*var(--s));overflow:hidden;border-radius:calc(10px*var(--s));background:var(--paper);box-shadow:0 1px 2px rgba(28,26,23,.08),0 14px 34px rgba(28,26,23,.10)}
+.page{position:absolute;left:0;top:0;width:1122px;height:793px;padding:50px 60px 58px;transform:scale(var(--s));transform-origin:0 0;display:flex;flex-direction:column;overflow:hidden}
+
+/* ── type ─────────────────────────────────────────────────────────────── */
+.kicker{display:flex;align-items:center;gap:10px;font:600 11.5px Inter,sans-serif;letter-spacing:.09em;text-transform:uppercase;color:var(--teal)}
+.kicker::before{content:'';width:20px;height:3px;border-radius:2px;background:var(--verm)}
+.title{margin-top:10px;font:700 32px/1.14 Manrope,Inter,sans-serif;letter-spacing:-.025em;text-wrap:balance}
+.title em{font-style:normal;color:var(--teal)}
+.lede{font-size:14.5px;line-height:1.55;color:var(--ink2);max-width:46ch}
+.head{display:block}
+.head .lede{margin-top:14px}
+.head.wide{display:grid;grid-template-columns:1.15fr 1fr;gap:44px;align-items:end}
+.head.wide .lede{margin:0 0 3px}
+.points{list-style:none;margin-top:22px;display:grid;gap:11px}
+.points li{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;line-height:1.45;color:var(--ink)}
+.points .ico{flex:none;width:18px;height:18px;margin-top:1px;color:var(--teal)}
+.points.row{display:flex;flex-wrap:wrap;gap:8px 26px;margin-top:16px}
+.points.row li{font-size:13px}
+
+/* ── screens ──────────────────────────────────────────────────────────── */
+.shot{position:relative;min-width:0}
+.frame{overflow:hidden;border:1px solid #DAD4C9;border-radius:10px;background:#fff;box-shadow:0 12px 30px rgba(28,26,23,.14);transition:transform .3s var(--ease),box-shadow .3s var(--ease)}
+.bar{display:flex;gap:5px;align-items:center;height:20px;padding:0 9px;background:#F1EEE8;border-bottom:1px solid #E4DFD6}
+.bar i{width:7px;height:7px;border-radius:50%;background:#D3CCC0}
+.frame img{width:100%;height:auto;cursor:zoom-in}
+.shot:hover .frame{transform:translateY(-3px);box-shadow:0 18px 38px rgba(28,26,23,.18)}
+figcaption{margin-top:11px;padding-right:6px}
+figcaption b{display:block;font:600 13px Inter,sans-serif;color:var(--ink)}
+figcaption span{display:block;margin-top:2px;font-size:12px;line-height:1.45;color:var(--ink2)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:20px}
+.row3{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;margin-top:34px}
+.step{position:relative}
+.crop{position:relative;aspect-ratio:4/3.9;overflow:hidden}
+.crop img{position:absolute;left:0;top:0;width:100%;height:auto;cursor:zoom-in}
+.step .num{position:absolute;z-index:2;left:-10px;top:-14px;display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--verm);color:#fff;font:700 14px Manrope,sans-serif;box-shadow:0 0 0 4px var(--paper)}
+.split{display:grid;grid-template-columns:330px 1fr;gap:42px;flex:1;min-height:0;align-items:center}
+.split .side{align-self:start;padding-top:8px}
+.split .stage{display:grid;gap:18px;align-content:center}
+.phonesplit{grid-template-columns:250px 1fr;gap:30px}
+.phonesplit .side .title{font-size:27px}
+.phonesplit .side .lede{font-size:13.5px}
+.phones{display:flex;gap:12px;align-items:flex-start;justify-content:flex-end}
+.phones .shot{width:172px}
+.device{padding:6px;border-radius:30px;background:#1C1A17;box-shadow:0 16px 32px rgba(28,26,23,.22),inset 0 0 0 1px #3a3631;transition:transform .3s var(--ease)}
+.device img{width:100%;height:auto;border-radius:24px;cursor:zoom-in;background:#fff}
+.shot.phone:hover .device{transform:translateY(-4px)}
+.pair{display:flex;gap:18px;justify-content:center}
+.pair .shot{width:160px}
+
+/* ── page footer ─────────────────────────────────────────────────────── */
+.foot{position:absolute;left:60px;right:60px;bottom:22px;display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--ink3);letter-spacing:.01em}
+.foot .brand{display:inline-flex;align-items:center;gap:7px}.foot .brand b{color:var(--ink);font-weight:600}
+.foot em{font-style:normal;font-weight:600;color:var(--ink);margin-left:14px;font-variant-numeric:tabular-nums}
+
+/* ── cover ───────────────────────────────────────────────────────────── */
+.cover{padding:0;background:var(--paper)}
+.cover .panel{position:absolute;right:0;top:0;bottom:0;width:560px;background:var(--teal)}
+.cover .panel::before{content:'';position:absolute;left:-1px;top:0;bottom:0;width:70px;background:var(--paper);border-radius:0 70px 70px 0}
+.cover .copy{position:absolute;left:60px;top:70px;width:470px}
+.cover .wordmark{display:flex;align-items:center;gap:12px;font:700 24px Manrope,sans-serif;letter-spacing:-.025em}
+.cover h1{margin-top:74px;font:700 47px/1.08 Manrope,Inter,sans-serif;letter-spacing:-.035em;text-wrap:balance}
+.cover h1 em{font-style:normal;color:var(--teal)}
+.cover .sub{margin-top:20px;font-size:16px;line-height:1.55;color:var(--ink2);max-width:40ch}
+.cover .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:30px}
+.chip{display:inline-flex;align-items:center;gap:7px;height:30px;padding:0 13px;border-radius:15px;background:#fff;border:1px solid var(--line);font:500 12.5px Inter,sans-serif;color:var(--ink)}
+.chip b{font-weight:700;color:var(--teal)}
+.cover .note{position:absolute;left:60px;bottom:34px;font-size:11.5px;color:var(--ink3)}
+.cover .dash{position:absolute;left:520px;top:128px;width:560px;--rot:-1.2deg;animation:drift 7s ease-in-out infinite}
+.cover .dash .frame{box-shadow:0 26px 50px rgba(0,0,0,.28);border-color:transparent}
+.cover .ph1{position:absolute;left:468px;top:372px;width:168px;--rot:-3deg;animation:drift 6s ease-in-out -2s infinite}
+.cover .ph2{position:absolute;left:896px;top:420px;width:168px;--rot:2.5deg;animation:drift 8s ease-in-out -4s infinite}
+.cover .ph1 .device,.cover .ph2 .device{box-shadow:0 26px 46px rgba(0,0,0,.34)}
+.cover .dot{position:absolute;border-radius:50%;background:var(--verm)}
+.cover .dot.a{left:1010px;top:60px;width:26px;height:26px}
+.cover .dot.b{left:612px;top:700px;width:12px;height:12px;background:#CFE6E8}
+@keyframes drift{0%,100%{transform:translateY(0) rotate(var(--rot,0deg))}50%{transform:translateY(-9px) rotate(var(--rot,0deg))}}
+
+/* ── contents ────────────────────────────────────────────────────────── */
+.toc-list{display:grid;grid-template-columns:1fr 1fr;column-gap:56px;margin-top:26px;align-content:start}
+.toc-row{display:flex;align-items:baseline;gap:10px;padding:8px 0;text-decoration:none;border-bottom:1px solid var(--line);transition:background .15s,padding .2s var(--ease)}
+.toc-row:hover{padding-left:8px;background:#fff}
+.toc-name b{display:block;font:600 14.5px Manrope,Inter,sans-serif;letter-spacing:-.01em}
+.toc-name small{display:block;font-size:12px;color:var(--ink3);margin-top:1px}
+.toc-dots{flex:1}
+.toc-pg{font:700 14px Manrope,sans-serif;color:var(--teal);font-variant-numeric:tabular-nums}
+
+/* ── at a glance ─────────────────────────────────────────────────────── */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:34px}
+.stat{padding:18px 20px;border-radius:14px;background:#fff;border:1px solid var(--line)}
+.stat .n{font:700 44px/1 Manrope,sans-serif;letter-spacing:-.04em;color:var(--teal);font-variant-numeric:lining-nums tabular-nums}
+.stat .n small{font-size:.5em;letter-spacing:0;margin-left:2px;color:var(--ink3)}
+.stat .l{margin-top:8px;font:600 13px Inter,sans-serif}
+.stat .d{margin-top:2px;font-size:12px;color:var(--ink2);line-height:1.4}
+.roles{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:20px}
+.role{display:flex;flex-direction:column;border-radius:14px;background:#fff;border:1px solid var(--line);overflow:hidden}
+.role .art{background:var(--teal-soft);padding:6px 10px;height:150px;display:grid;place-items:center}
+.role .art img{height:136px;width:auto}
+.role .tx{padding:14px 16px 16px}
+.role h3{font:700 16px Manrope,sans-serif;letter-spacing:-.02em}
+.role p{margin-top:5px;font-size:12.5px;line-height:1.5;color:var(--ink2)}
+.role .on{margin-top:10px;font:600 11px Inter,sans-serif;letter-spacing:.04em;text-transform:uppercase;color:var(--verm-ink)}
+
+/* ── architecture diagram ────────────────────────────────────────────── */
+.arch{display:grid;grid-template-columns:250px 56px 1fr 56px 290px;gap:0;align-items:center;margin-top:36px;flex:1;min-height:0;padding-bottom:20px}
+.col-h{font:600 11px Inter,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);margin-bottom:12px}
+.box{border-radius:12px;background:#fff;border:1px solid var(--line);padding:12px 14px;display:flex;gap:12px;align-items:center}
+.box+.box{margin-top:10px}
+.box .ico{width:22px;height:22px;color:var(--teal);flex:none}
+.box b{display:block;font:600 13px Inter,sans-serif}
+.box small{display:block;font-size:11.5px;color:var(--ink2);line-height:1.35}
+.core{padding:22px;border-radius:16px;background:var(--teal);color:#fff}
+.core h3{font:700 19px Manrope,sans-serif;letter-spacing:-.02em}
+.core p{margin-top:6px;font-size:12.5px;line-height:1.5;color:#D6E8EA}
+.core ul{list-style:none;margin-top:14px;display:grid;gap:8px}
+.core li{display:flex;gap:9px;font-size:12.5px;color:#fff}
+.core li .ico{width:16px;height:16px;flex:none;margin-top:1px;color:#F2C48D}
+.flow{width:100%;height:30px}
+.flow line{stroke:var(--verm);stroke-width:2;stroke-dasharray:6 7;animation:dash 1.2s linear infinite}
+@keyframes dash{to{stroke-dashoffset:-26}}
+.db{position:relative;border-radius:12px;background:#fff;border:1px solid var(--line);padding:12px 14px 12px 50px}
+.db+.db{margin-top:10px}
+.db .ico{position:absolute;left:14px;top:50%;margin-top:-13px;width:26px;height:26px;color:var(--teal)}
+.db b{display:block;font:600 13px Inter,sans-serif}
+.db small{display:block;font-size:11.5px;color:var(--ink2)}
+.db.ctl{background:var(--verm-soft);border-color:#F1C6B3}
+.db.ctl .ico{color:var(--verm)}
+
+/* ── cards: security / pricing ───────────────────────────────────────── */
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:34px}
+.cards.c3{grid-template-columns:repeat(3,1fr)}
+.cards.c2{grid-template-columns:repeat(2,1fr)}
+.card{padding:20px 19px 21px;border-radius:14px;background:#fff;border:1px solid var(--line);transition:transform .25s var(--ease),border-color .2s}
+.card:hover{transform:translateY(-3px);border-color:#CFC7B8}
+.card .ic{display:grid;place-items:center;width:34px;height:34px;border-radius:9px;background:var(--teal-soft);color:var(--teal)}
+.card .ic .ico{width:19px;height:19px}
+.card h3{margin-top:12px;font:700 14.5px Manrope,sans-serif;letter-spacing:-.015em}
+.card p{margin-top:6px;font-size:12.8px;line-height:1.55;color:var(--ink2)}
+.road{margin-top:26px;display:flex;gap:10px;align-items:center;padding:11px 16px;border-radius:12px;background:var(--amber-soft);border:1px solid #EBD3AA;font-size:12.3px;color:var(--ink)}
+.road b{font-weight:600;color:var(--amber-ink);white-space:nowrap}
+
+/* ── pricing ─────────────────────────────────────────────────────────── */
+.price-grid .card{padding:15px 17px 16px}
+.price-grid .card h3{margin-top:10px}
+.price-grid{display:grid;grid-template-columns:1fr 440px;gap:30px;margin-top:22px;flex:1;min-height:0;align-items:start}
+.big{display:flex;align-items:baseline;gap:14px;margin-top:6px}
+.big .u{font:700 52px/1 Manrope,sans-serif;letter-spacing:-.04em;color:var(--teal)}
+.big .t{font:600 16px Manrope,sans-serif;color:var(--ink2);letter-spacing:-.01em}
+.life{display:flex;align-items:center;margin-top:20px;padding:14px 16px;border-radius:14px;background:#fff;border:1px solid var(--line)}
+.life .st{flex:1;text-align:center}
+.life .st b{display:block;font:600 12.5px Inter,sans-serif}
+.life .st small{display:block;font-size:11px;color:var(--ink2);margin-top:2px;line-height:1.35}
+.life .pill{display:inline-block;margin-bottom:6px;padding:3px 10px;border-radius:10px;font:600 10.5px Inter,sans-serif;letter-spacing:.05em;text-transform:uppercase}
+.p-ok{background:#E2F0E6;color:#2A7448}.p-grace{background:var(--amber-soft);color:var(--amber-ink)}.p-ro{background:#EFEAE0;color:var(--ink2)}
+.life .ar{width:34px;height:14px;color:var(--ink3);flex:none}
+.life .ar line{stroke:currentColor;stroke-width:1.6;stroke-dasharray:4 5;animation:dash 1.4s linear infinite}
+
+/* ── roll-out timeline ───────────────────────────────────────────────── */
+.tl{display:grid;grid-template-columns:repeat(4,1fr);gap:22px;margin-top:56px;position:relative}
+.tl::before{content:'';position:absolute;left:16px;right:16px;top:17px;height:2px;background:repeating-linear-gradient(90deg,var(--verm) 0 7px,transparent 7px 14px)}
+.tl .st{position:relative;padding-top:50px}
+.tl .st .n{position:absolute;top:0;left:0;display:grid;place-items:center;width:36px;height:36px;border-radius:50%;background:var(--teal);color:#fff;font:700 15px Manrope,sans-serif;box-shadow:0 0 0 6px var(--paper)}
+.tl h3{font:700 16px Manrope,sans-serif;letter-spacing:-.02em}
+.tl p{margin-top:8px;font-size:13.2px;line-height:1.55;color:var(--ink2)}
+.closing{margin-top:64px;display:grid;grid-template-columns:1fr 260px;gap:30px;align-items:center;padding:38px 42px;border-radius:18px;background:var(--teal);color:#fff}
+.closing h3{font:700 26px/1.2 Manrope,sans-serif;letter-spacing:-.03em}
+.closing p{margin-top:8px;font-size:13.5px;line-height:1.55;color:#D6E8EA;max-width:52ch}
+.closing img{width:240px;justify-self:end}
+
+/* ── lightbox ────────────────────────────────────────────────────────── */
+.lightbox{position:fixed;inset:0;z-index:100;display:grid;place-items:center;background:rgba(28,26,23,.82);padding:28px;cursor:zoom-out;animation:fade .2s var(--ease)}
+.lightbox[hidden]{display:none}
+.lightbox img{max-width:min(96vw,1700px);max-height:92vh;border-radius:10px;box-shadow:0 30px 80px rgba(0,0,0,.5);background:#fff}
+.lb-close{position:absolute;right:18px;top:12px;width:40px;height:40px;border:0;border-radius:50%;background:#fff;font-size:26px;line-height:1;cursor:pointer}
+@keyframes fade{from{opacity:0}}
+
+/* ── entrance animation (screen only; skipped for print and reduced motion) ── */
+.js [data-r]{opacity:0;transform:translateY(16px);transition:opacity .6s var(--ease) calc(var(--i,0)*90ms),transform .6s var(--ease) calc(var(--i,0)*90ms)}
+.js [data-r="phone"]{transform:translateY(46px)}
+.js .sheet.in [data-r]{opacity:1;transform:none}
+.js .cover .dash,.js .cover .ph1,.js .cover .ph2{opacity:0}
+.js .sheet.in .cover .dash,.js .sheet.in .cover .ph1,.js .sheet.in .cover .ph2{opacity:1;transition:opacity .8s var(--ease) .3s}
+@media (prefers-reduced-motion:reduce){
+  .js [data-r],.js [data-r="phone"]{opacity:1;transform:none;transition:none}
+  *{animation:none!important}
+}
+
+/* ── print: A4 landscape, one sheet per page ─────────────────────────── */
+@page{size:297mm 210mm;margin:0}
+@media print{
+  :root{--s:1}
+  html,body{background:#fff}
+  .nav,.lightbox{display:none!important}
+  .deck{display:block;padding:0;gap:0}
+  .sheet{width:297mm;height:210mm;border-radius:0;box-shadow:none;break-after:page;page-break-after:always}
+  .sheet:last-child{break-after:auto;page-break-after:auto}
+  .page{transform:none!important;width:297mm;height:210mm}
+  *{animation:none!important;transition:none!important}
+  [data-r],.js [data-r]{opacity:1!important;transform:none!important}
+  .cover .dash,.cover .ph1,.cover .ph2{opacity:1!important}
+  body{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+<nav class="nav" aria-label="Catalogue">
+  <a class="nav-brand" href="#p1"><svg viewBox="0 0 64 64" width="22" height="22" role="img" aria-label="SchoolSync" class="mark"><path d="M22 8H28A4 4 0 0 1 32 12V44A4 4 0 0 1 28 48H22A16 16 0 0 1 6 32V24A16 16 0 0 1 22 8Z" fill="#0E5A63"/><path d="M38 16H42A16 16 0 0 1 58 32V40A16 16 0 0 1 42 56H38A4 4 0 0 1 34 52V20A4 4 0 0 1 38 16Z" fill="#D1411B"/></svg><b>SchoolSync</b><span>Product catalogue</span></a>
+  <label class="nav-jump"><span class="sr">Jump to a chapter</span><select id="jump" aria-label="Jump to a chapter"><option value="#p1">Jump to…</option><option value="#p1">Overview</option><option value="#p5">Getting started</option><option value="#p7">Management home</option><option value="#p9">School setup</option><option value="#p12">People &amp; admissions</option><option value="#p15">Attendance &amp; leave</option><option value="#p16">Exams &amp; results</option><option value="#p18">Fees &amp; finance</option><option value="#p22">Communication &amp; events</option><option value="#p24">Operations &amp; reports</option><option value="#p26">Settings &amp; access</option><option value="#p28">For teachers</option><option value="#p32">For students</option><option value="#p36">For parents</option><option value="#p39">Security &amp; privacy</option><option value="#p40">Pricing &amp; licence</option><option value="#p41">Going live</option></select></label>
+  <a class="nav-pdf" href="SchoolSync-Product-Catalogue.pdf" download><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11"/><path d="m7.5 11 4.5 4.5 4.5-4.5"/><path d="M5 19.5h14"/></svg><span>PDF</span></a>
+  <i class="progress" id="progress" aria-hidden="true"></i>
+</nav>
+<main class="deck" id="deck">
+
+  <section class="sheet" id="p1" data-chapter="overview" data-title="Cover">
+    <div class="page cover raw">
+      
+      <div class="panel"></div>
+      <div class="copy">
+        <div class="wordmark" data-r><svg viewBox="0 0 64 64" width="38" height="38" role="img" aria-label="SchoolSync" class="mark"><path d="M22 8H28A4 4 0 0 1 32 12V44A4 4 0 0 1 28 48H22A16 16 0 0 1 6 32V24A16 16 0 0 1 22 8Z" fill="#0E5A63"/><path d="M38 16H42A16 16 0 0 1 58 32V40A16 16 0 0 1 42 56H38A4 4 0 0 1 34 52V20A4 4 0 0 1 38 16Z" fill="#D1411B"/></svg><span>SchoolSync</span></div>
+        <h1 data-r style="--i:1">One platform for the <em>whole school day</em>.</h1>
+        <p class="sub" data-r style="--i:2">Management, teachers, students and parents, on the web and on the phone. A tour of the product, screen by screen.</p>
+        <div class="chips" data-r style="--i:3"><span class="chip"><b>12</b> modules</span><span class="chip"><b>4</b> role homes</span><span class="chip">Web + mobile</span><span class="chip">Own database per school</span></div>
+      </div>
+      <div class="dash">
+  <figure class="shot web" data-r style="--i:0">
+    <div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="assets/web/admin-dashboard.jpg" alt="admin-dashboard" decoding="async"></div>
+    
+  </figure></div>
+      <div class="ph1">
+  <figure class="shot phone" data-r="phone" style="--i:0">
+    <div class="device"><img src="assets/mobile/05-student-home.png" alt="05-student-home.png" decoding="async"></div>
+    
+  </figure></div>
+      <div class="ph2">
+  <figure class="shot phone" data-r="phone" style="--i:0">
+    <div class="device"><img src="assets/mobile/07-parent-home.png" alt="07-parent-home.png" decoding="async"></div>
+    
+  </figure></div>
+      <i class="dot a"></i><i class="dot b"></i>
+      <p class="note">Product catalogue · Screens are from a demo school with sample data.</p>
+      
+    </div>
+  </section>
+
+  <section class="sheet" id="p2" data-chapter="overview" data-title="Contents">
+    <div class="page  raw">
+      
+  <header class="head wide">
+    <div>
+      <p class="kicker" data-r>Contents</p>
+      <h2 class="title" data-r style="--i:1">What is <em>inside</em></h2>
+    </div>
+    <p class="lede" data-r style="--i:2">Chapters follow the way a school is run: set it up, run the day, then see it through each person’s eyes. Click a chapter to jump to it.</p>
+  </header><div class="toc-list"><a href="#p1" class="toc-row" data-r style="--i:0"><span class="toc-name"><b>Overview</b><small>What SchoolSync is and how it is built</small></span><span class="toc-dots"></span><span class="toc-pg">1–4</span></a><a href="#p5" class="toc-row" data-r style="--i:1"><span class="toc-name"><b>Getting started</b><small>Find your school, sign in, take the tour</small></span><span class="toc-dots"></span><span class="toc-pg">5–6</span></a><a href="#p7" class="toc-row" data-r style="--i:2"><span class="toc-name"><b>Management home</b><small>The dashboard, on the web and on the phone</small></span><span class="toc-dots"></span><span class="toc-pg">7–8</span></a><a href="#p9" class="toc-row" data-r style="--i:3"><span class="toc-name"><b>School setup</b><small>Years, classes, teachers, timetable, promotion</small></span><span class="toc-dots"></span><span class="toc-pg">9–11</span></a><a href="#p12" class="toc-row" data-r style="--i:4"><span class="toc-name"><b>People &amp; admissions</b><small>Students, staff, imports, applications</small></span><span class="toc-dots"></span><span class="toc-pg">12–14</span></a><a href="#p15" class="toc-row" data-r style="--i:5"><span class="toc-name"><b>Attendance &amp; leave</b><small>Daily attendance, trends, leave decisions</small></span><span class="toc-dots"></span><span class="toc-pg">15</span></a><a href="#p16" class="toc-row" data-r style="--i:6"><span class="toc-name"><b>Exams &amp; results</b><small>Schedules, mark review, report cards</small></span><span class="toc-dots"></span><span class="toc-pg">16–17</span></a><a href="#p18" class="toc-row" data-r style="--i:7"><span class="toc-name"><b>Fees &amp; finance</b><small>Invoices, payments, defaulters, expenses</small></span><span class="toc-dots"></span><span class="toc-pg">18–21</span></a><a href="#p22" class="toc-row" data-r style="--i:8"><span class="toc-name"><b>Communication &amp; events</b><small>Announcements and the school calendar</small></span><span class="toc-dots"></span><span class="toc-pg">22–23</span></a><a href="#p24" class="toc-row" data-r style="--i:9"><span class="toc-name"><b>Operations &amp; reports</b><small>Transport, library and the reports hub</small></span><span class="toc-dots"></span><span class="toc-pg">24–25</span></a><a href="#p26" class="toc-row" data-r style="--i:10"><span class="toc-name"><b>Settings &amp; access</b><small>Roles, users, branding and the audit log</small></span><span class="toc-dots"></span><span class="toc-pg">26–27</span></a><a href="#p28" class="toc-row" data-r style="--i:11"><span class="toc-name"><b>For teachers</b><small>Roll call, homework and marks</small></span><span class="toc-dots"></span><span class="toc-pg">28–31</span></a><a href="#p32" class="toc-row" data-r style="--i:12"><span class="toc-name"><b>For students</b><small>Home, tasks, learning, results</small></span><span class="toc-dots"></span><span class="toc-pg">32–35</span></a><a href="#p36" class="toc-row" data-r style="--i:13"><span class="toc-name"><b>For parents</b><small>Attendance, fees and school news</small></span><span class="toc-dots"></span><span class="toc-pg">36–38</span></a><a href="#p39" class="toc-row" data-r style="--i:14"><span class="toc-name"><b>Security &amp; privacy</b><small>How each school’s data is protected</small></span><span class="toc-dots"></span><span class="toc-pg">39</span></a><a href="#p40" class="toc-row" data-r style="--i:15"><span class="toc-name"><b>Pricing &amp; licence</b><small>Per student, per academic year</small></span><span class="toc-dots"></span><span class="toc-pg">40</span></a><a href="#p41" class="toc-row" data-r style="--i:16"><span class="toc-name"><b>Going live</b><small>From an empty site to a school in use</small></span><span class="toc-dots"></span><span class="toc-pg">41</span></a></div>
+      <footer class="foot"><span class="brand"><svg viewBox="0 0 64 64" width="16" height="16" role="img" aria-label="SchoolSync" class="mark"><path d="M22 8H28A4 4 0 0 1 32 12V44A4 4 0 0 1 28 48H22A16 16 0 0 1 6 32V24A16 16 0 0 1 22 8Z" fill="#0E5A63"/><path d="M38 16H42A16 16 0 0 1 58 32V40A16 16 0 0 1 42 56H38A4 4 0 0 1 34 52V20A4 4 0 0 1 38 16Z" fill="#D1411B"/></svg><b>SchoolSync</b> · Product catalogue</span><span>Overview<em>02</em></span></footer>
+    </div>
+  </section>
+
+  <section class="sheet" id="p3" data-chapter="overview" data-title="At a glance">
+    <div class="page  raw">
+      
+      
+  <header class="head wide">
+    <div>
+      <p class="kicker" data-r>At a glance</p>
+      <h2 class="title" data-r style="--i:1">One product. <em>Four ways</em> to use it.</h2>
+    </div>
+    <p class="lede" data-r style="--i:2">SchoolSync gives each person a home built for their job, not one dashboard with buttons hidden. Everyone works from the same records and sees only what they are allowed to.</p>
+  </header>
+      <div class="stats">
+        <div class="stat" data-r style="--i:2"><div class="n"><span data-count="12">12</span></div><div class="l">Modules</div><div class="d">From admissions and attendance to fees, exams and the library.</div></div>
+        <div class="stat" data-r style="--i:3"><div class="n"><span data-count="4">4</span></div><div class="l">Role homes</div><div class="d">Management, teacher, student and parent.</div></div>
+        <div class="stat" data-r style="--i:4"><div class="n"><span data-count="1">1</span><small>per school</small></div><div class="l">Database</div><div class="d">Every school’s data is kept apart from every other’s.</div></div>
+        <div class="stat" data-r style="--i:5"><div class="n"><span data-count="2">2</span></div><div class="l">Ways in</div><div class="d">A web app and a mobile app, from the same records.</div></div>
+      </div>
+      <div class="roles">
+        <div class="role" data-r style="--i:4"><div class="art"><img src="assets/art/onboarding-management.svg" alt=""></div><div class="tx"><h3>Management</h3><p>Principal, administrator, accountant and office roles. See the whole school, approve, publish and report.</p><p class="on">Web + mobile</p></div></div>
+        <div class="role" data-r style="--i:5"><div class="art"><img src="assets/art/onboarding-teacher.svg" alt=""></div><div class="tx"><h3>Teachers</h3><p>Today’s lessons, roll call, homework and marks for the classes they teach, and nothing else.</p><p class="on">Web + mobile</p></div></div>
+        <div class="role" data-r style="--i:6"><div class="art"><img src="assets/art/onboarding-student.svg" alt=""></div><div class="tx"><h3>Students</h3><p>Timetable, homework, tasks, results and the school calendar in five simple tabs.</p><p class="on">Web + mobile</p></div></div>
+        <div class="role" data-r style="--i:7"><div class="art"><img src="assets/art/onboarding-parent.svg" alt=""></div><div class="tx"><h3>Parents</h3><p>Attendance, homework, results and fees for each linked child, with school news in one place.</p><p class="on">Web + mobile</p></div></div>
+      </div>
+      <footer class="foot"><span class="brand"><svg viewBox="0 0 64 64" width="16" height="16" role="img" aria-label="SchoolSync" class="mark"><path d="M22 8H28A4 4 0 0 1 32 12V44A4 4 0 0 1 28 48H22A16 16 0 0 1 6 32V24A16 16 0 0 1 22 8Z" fill="#0E5A63"/><path d="M38 16H42A16 16 0 0 1 58 32V40A16 16 0 0 1 42 56H38A4 4 0 0 1 34 52V20A4 4 0 0 1 38 16Z" fill="#D1411B"/></svg><b>SchoolSync</b> · Product catalogue</span><span>Overview<em>03</em></span></footer>
+    </div>
+  </section>
+
+  <section class="sheet" id="p4" data-chapter="overview" data-title="How it is built">
+    <div class="page  raw">
+      
+      
+  <header class="head wide">
+    <div>
+      <p class="kicker" data-r>How it is built</p>
+      <h2 class="title" data-r style="--i:1">One codebase, <em>one database</em> per school</h2>
+    </div>
+    <p class="lede" data-r style="--i:2">Every school is a site with its own database, its own sign-in key and its own colours. A sign-in from one school can never open another.</p>
+  </header>
+      <div class="arch">
+        <div data-r style="--i:2"><p class="col-h">People</p>
+          <div class="box"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/></svg><div><b>Mobile app</b><small>Asks for the school once, on first launch</small></div></div>
+          <div class="box"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/></svg><div><b>Web app</b><small>Each school has its own address</small></div></div>
+          <div class="box"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.4"/><path d="M2.8 20c0-3.5 2.8-5.8 6.2-5.8s6.2 2.3 6.2 5.8"/><circle cx="17" cy="9" r="2.4"/><path d="M17 14.2c2.7 0 4.2 1.8 4.2 4.3"/></svg><div><b>Four role homes</b><small>Management, teachers, students, parents</small></div></div>
+        </div>
+        <svg class="flow" viewBox="0 0 56 30" data-r style="--i:3"><line x1="4" y1="15" x2="52" y2="15"/></svg>
+        <div class="core" data-r style="--i:3"><h3>SchoolSync service</h3><p>One application serves every school.</p>
+          <ul>
+            <li><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Works out which school and which person is asking</span></li>
+            <li><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Applies role, scope and action rules to every record</span></li>
+            <li><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Sends push and e-mail notifications, with quiet hours</span></li>
+            <li><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Runs reminders and usage metering in the background</span></li>
+          </ul>
+        </div>
+        <svg class="flow" viewBox="0 0 56 30" data-r style="--i:4"><line x1="4" y1="15" x2="52" y2="15"/></svg>
+        <div data-r style="--i:4"><p class="col-h">Data</p>
+          <div class="db"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="5.5" rx="7.5" ry="3"/><path d="M4.5 5.5v13c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3v-13"/><path d="M4.5 12c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3"/></svg><b>Your school</b><small>Own database, own key, own branding</small></div>
+          <div class="db"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="5.5" rx="7.5" ry="3"/><path d="M4.5 5.5v13c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3v-13"/><path d="M4.5 12c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3"/></svg><b>Another school</b><small>Completely separate database</small></div>
+          <div class="db"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="5.5" rx="7.5" ry="3"/><path d="M4.5 5.5v13c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3v-13"/><path d="M4.5 12c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3"/></svg><b>Another school</b><small>Completely separate database</small></div>
+          <div class="db ctl"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/></svg><b>Control plane</b><small>List of schools, subscriptions, usage</small></div>
+        </div>
+      </div>
+      <footer class="foot"><span class="brand"><svg viewBox="0 0 64 64" width="16" height="16" role="img" aria-label="SchoolSync" class="mark"><path d="M22 8H28A4 4 0 0 1 32 12V44A4 4 0 0 1 28 48H22A16 16 0 0 1 6 32V24A16 16 0 0 1 22 8Z" fill="#0E5A63"/><path d="M38 16H42A16 16 0 0 1 58 32V40A16 16 0 0 1 42 56H38A4 4 0 0 1 34 52V20A4 4 0 0 1 38 16Z" fill="#D1411B"/></svg><b>SchoolSync</b> · Product catalogue</span><span>Overview<em>04</em></span></footer>
+    </div>
+  </section>
+
+  <section class="sheet" id="p5" data-chapter="start" data-title="From the school’s address to the first screen">
+    <div class="page  steps">
+      
+  <header class="head wide">
+    <div>
+      <p class="kicker" data-r>Getting started · Web</p>
+      <h2 class="title" data-r style="--i:1">From the school’s address to the first screen</h2>
+    </div>
+    <p class="lede" data-r style="--i:2">Each school has its own address. People enter it once, sign in with the details the school gave them, and a short tour introduces the screens for their role.</p>
+  </header><div class="row3"><div class="step" data-r style="--i:2"><span class="num">1</span>
+  <figure class="shot web" data-r style="--i:0">
+    <div class="frame"><div class="bar"><i></i><i></i><i></i></div><div class="crop"><img src="assets/web/auth-find-school.jpg" alt="Find your school" decoding="async" style="transform-origin:50% 52%;transform:scale(2.1)"></div></div>
+    <figcaption><b>Find your school</b><span>Enter the school code or web address once. A school’s own address goes straight to its sign-in.</span></figcaption>
+  </figure></div><div class="step" data-r style="--i:3"><span class="num">2</span>
+  <figure class="shot web" data-r style="--i:0">
+    <div class="frame"><div class="bar"><i></i><i></i><i></i></div><div class="crop"><img src="assets/web/auth-sign-in.jpg" alt="Sign in" decoding="async" style="transform-origin:98% 41%;transform:scale(2.2)"></div></div>
+    <figcaption><b>Sign in</b><span>Choose Student, Parent, Teacher or Staff, then use a username, e-mail or phone number.</span></figcaption>
+  </figure></div><div class="step" data-r style="--i:4"><span class="num">3</span>
+  <figure class="shot web" data-r style="--i:0">
+    <div class="frame"><div class="bar"><i></i><i></i><i></i></div><div class="crop"><img src="assets/web/auth-welcome-tour.jpg" alt="A short welcome tour" decoding="async" style="transform-origin:50% 36%;transform:scale(1.9)"></div></div>
+    <figcaption><b>A short welcome tour</b><span>The first sign-in opens a four-step tour of the screens that role uses. It can be skipped or replayed.</span></figcaption>
+  </figure></div></div>
+      <footer class="foot"><span class="brand"><svg viewBox="0 0 64 64" width="16" height="16" role="img" aria-label="SchoolSync" class="mark"><path d="M22 8H28A4 4 0 0 1 32 12V44A4 4 0 0 1 28 48H22A16 16 0 0 1 6 32V24A16 16 0 0 1 22 8Z" fill="#0E5A63"/><path d="M38 16H42A16 16 0 0 1 58 32V40A16 16 0 0 1 42 56H38A4 4 0 0 1 34 52V20A4 4 0 0 1 38 16Z" fill="#D1411B"/></svg><b>SchoolSync</b> · Product catalogue</span><span>Getting started<em>05</em></span></footer>
+    </div>
+  </section>
+
+  <section class="sheet" id="p6" data-chapter="start" data-title="The same start on the phone">
+    <div class="page  phones">
+      <div class="split phonesplit"><div class="side">
+  <header class="head">
+    <div>
+      <p class="kicker" data-r>Getting started · Mobile app</p>
+      <h2 class="title" data-r style="--i:1">The same start on the phone</h2>
+    </div>
+    <p class="lede" data-r style="--i:2">The app asks for the school once, on first launch, and remembers it. After that it opens straight to the sign-in, in the school’s own colours.</p>
+  </header><ul class="points"><li data-r style="--i:2"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Short introductions for students and for parents</span></li><li data-r style="--i:3"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Confirm the school by name before continuing</span></li><li data-r style="--i:4"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Sign in with username, e-mail, phone, admission number or employee ID</span></li></ul></div><div class="phones">
+  <figure class="shot phone" data-r="phone" style="--i:2">
+    <div class="device"><img src="assets/mobile/01-intro-students.png" alt="Welcome, students" decoding="async"></div>
+    <figcaption><b>Welcome, students</b><span>Timetable, homework and exams in one place.</span></figcaption>
+  </figure>
+  <figure class="shot phone" data-r="phone" style="--i:3">
+    <div class="device"><img src="assets/mobile/02-intro-parents.png" alt="Welcome, parents" decoding="async"></div>
+    <figcaption><b>Welcome, parents</b><span>Follow each child: attendance, results, fees and notices.</span></figcaption>
+  </figure>
+  <figure class="shot phone" data-r="phone" style="--i:4">
+    <div class="device"><img src="assets/mobile/03-connect-school.png" alt="Connect your school" decoding="async"></div>
+    <figcaption><b>Connect your school</b><span>Check the school’s name, then continue. Wrong school? Choose another.</span></figcaption>
+  </figure>
+  <figure class="shot phone" data-r="phone" style="--i:5">
+    <div class="device"><img src="assets/mobile/04-login.png" alt="Sign in" decoding="async"></div>
+    <figcaption><b>Sign in</b><span>The school’s logo and colours appear once it is connected.</span></figcaption>
+  </figure></div></div>
+      <footer class="foot"><span class="brand"><svg viewBox="0 0 64 64" width="16" height="16" role="img" aria-label="SchoolSync" class="mark"><path d="M22 8H28A4 4 0 0 1 32 12V44A4 4 0 0 1 28 48H22A16 16 0 0 1 6 32V24A16 16 0 0 1 22 8Z" fill="#0E5A63"/><path d="M38 16H42A16 16 0 0 1 58 32V40A16 16 0 0 1 42 56H38A4 4 0 0 1 34 52V20A4 4 0 0 1 38 16Z" fill="#D1411B"/></svg><b>SchoolSync</b> · Product catalogue</span><span>Getting started<em>06</em></span></footer>
+    </div>
+  </section>
+
+  <section class="sheet" id="p7" data-chapter="dash" data-title="The whole school at a glance">
+    <div class="page  duo">
+      
+  <header class="head wide">
+    <div>
+      <p class="kicker" data-r>Management · Home</p>
+      <h2 class="title" data-r style="--i:1">The whole school <em>at a glance</em></h2>
+    </div>
+    <p class="lede" data-r style="--i:2">Principals and administrators land on today’s numbers: who is in, what needs a decision and how fees are going. Every tile opens the screen where you act on it.</p>
+  </header><ul class="points row"><li data-r style="--i:2"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Students, staff, parents and classes in one row</span></li><li data-r style="--i:3"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Today’s attendance, with classes still to mark</span></li><li data-r style="--i:4"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>A queue of approvals: leave, corrections, mark sheets, admissions</span></li><li data-r style="--i:5"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Seven-day attendance trend, with a table view</span></li></ul><div class="row2">
+  <figure class="shot web" data-r style="--i:2">
+    <div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="assets/web/admin-dashboard.jpg" alt="Management dashboard" decoding="async"></div>
+    <figcaption><b>Management dashboard</b><span>Headline numbers, today’s attendance and the approval queue on one screen.</span></figcaption>
+  </figure>
+  <figure class="shot web" data-r style="--i:3">
+    <div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="assets/web/admin-dashboard-dark.jpg" alt="Dark mode" decoding="async"></div>
+    <figcaption><b>Dark mode</b><span>Anyone can switch to a dark theme from the top bar.</span></figcaption>
+  </figure></div>
+      <footer class="foot"><span class="brand"><svg viewBox="0 0 64 64" width="16" height="16" role="img" aria-label="SchoolSync" class="mark"><path d="M22 8H28A4 4 0 0 1 32 12V44A4 4 0 0 1 28 48H22A16 16 0 0 1 6 32V24A16 16 0 0 1 22 8Z" fill="#0E5A63"/><path d="M38 16H42A16 16 0 0 1 58 32V40A16 16 0 0 1 42 56H38A4 4 0 0 1 34 52V20A4 4 0 0 1 38 16Z" fill="#D1411B"/></svg><b>SchoolSync</b> · Product catalogue</span><span>Management home<em>07</em></span></footer>
+    </div>
+  </section>
+
+  <section class="sheet" id="p8" data-chapter="dash" data-title="Decisions from the phone">
+    <div class="page  phones">
+      <div class="split phonesplit"><div class="side">
+  <header class="head">
+    <div>
+      <p class="kicker" data-r>Management · Mobile</p>
+      <h2 class="title" data-r style="--i:1">Decisions from the phone</h2>
+    </div>
+    <p class="lede" data-r style="--i:2">The principal’s app opens on the same numbers and the same approval queue, so a leave request can be decided between meetings.</p>
+  </header><ul class="points"><li data-r style="--i:2"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Headline numbers and the approval queue on Home</span></li><li data-r style="--i:3"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Approve or reject a request with a note</span></li><li data-r style="--i:4"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Finance summary: collected, outstanding, overdue</span></li></ul></div><div class="phones">
+  <figure class="shot phone" data-r="phone" style="--i:2">
+    <div class="device"><img src="assets/mobile/14-management-home.png" alt="Home" decoding="async"></div>
+    <figcaption><b>Home</b><span>Students, classes, staff and parents, then everything waiting for a decision.</span></figcaption>
+  </figure>
+  <figure class="shot phone" data-r="phone" style="--i:3">
+    <div class="device"><img src="assets/mobile/14b-management-attendance-trend.png" alt="Attendance trend" decoding="async"></div>
+    <figcaption><b>Attendance trend</b><span>Today’s attendance, classes still to mark and a seven-day trend with a table view.</span></figcaption>
+  </figure>
+  <figure class="shot phone" data-r="phone" style="--i:4">
+    <div class="device"><img src="assets/mobile/15-management-approvals.png" alt="Decide a request" decoding="async"></div>
+    <figcaption><b>Decide a request</b><span>Open a leave request, add a note, approve or reject.</span></figcaption>
+  </figure>
+  <figure class="shot phone" data-r="phone" style="--i:5">
+    <div class="device"><img src="assets/mobile/16-management-finance.png" alt="Finance" decoding="async"></div>
+    <figcaption><b>Finance</b><span>Collected, outstanding, overdue and expenses at a glance.</span></figcaption>
+  </figure></div></div>
+      <footer class="foot"><span class="brand"><svg viewBox="0 0 64 64" width="16" height="16" role="img" aria-label="SchoolSync" class="mark"><path d="M22 8H28A4 4 0 0 1 32 12V44A4 4 0 0 1 28 48H22A16 16 0 0 1 6 32V24A16 16 0 0 1 22 8Z" fill="#0E5A63"/><path d="M38 16H42A16 16 0 0 1 58 32V40A16 16 0 0 1 42 56H38A4 4 0 0 1 34 52V20A4 4 0 0 1 38 16Z" fill="#D1411B"/></svg><b>SchoolSync</b> · Product catalogue</span><span>Management home<em>08</em></span></footer>
+    </div>
+  </section>
+
+  <section class="sheet" id="p9" data-chapter="setup" data-title="A guided start for a new school">
+    <div class="page  duo">
+      
+  <header class="head wide">
+    <div>
+      <p class="kicker" data-r>School setup · Getting ready</p>
+      <h2 class="title" data-r style="--i:1">A guided start for a <em>new school</em></h2>
+    </div>
+    <p class="lede" data-r style="--i:2">The setup page checks the school’s real data and shows what is left: profile and branding, terms, grades, sections and subjects. Each step links to the screen where it is done.</p>
+  </header><ul class="points row"><li data-r style="--i:2"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>A checklist that ticks itself off</span></li><li data-r style="--i:3"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Subscription and seats shown alongside</span></li><li data-r style="--i:4"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>One current academic year at a time</span></li><li data-r style="--i:5"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Terms and school-day periods feed the timetable</span></li></ul><div class="row2">
+  <figure class="shot web" data-r style="--i:2">
+    <div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="assets/web/admin-setup.jpg" alt="School setup" decoding="async"></div>
+    <figcaption><b>School setup</b><span>A checklist driven by the school’s own data, with the subscription and seat count beside it.</span></figcaption>
+  </figure>
+  <figure class="shot web" data-r style="--i:3">
+    <div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="assets/web/academics-years.jpg" alt="Academic years and terms" decoding="async"></div>
+    <figcaption><b>Academic years and terms</b><span>The calendar everything else hangs from. School-day periods are set up here too.</span></figcaption>
+  </figure></div>
+      <footer class="foot"><span class="brand"><svg viewBox="0 0 64 64" width="16" height="16" role="img" aria-label="SchoolSync" class="mark"><path d="M22 8H28A4 4 0 0 1 32 12V44A4 4 0 0 1 28 48H22A16 16 0 0 1 6 32V24A16 16 0 0 1 22 8Z" fill="#0E5A63"/><path d="M38 16H42A16 16 0 0 1 58 32V40A16 16 0 0 1 42 56H38A4 4 0 0 1 34 52V20A4 4 0 0 1 38 16Z" fill="#D1411B"/></svg><b>SchoolSync</b> · Product catalogue</span><span>School setup<em>09</em></span></footer>
+    </div>
+  </section>
+
+  <section class="sheet" id="p10" data-chapter="setup" data-title="Classes, sections and who teaches what">
+    <div class="page  duo">
+      
+  <header class="head wide">
+    <div>
+      <p class="kicker" data-r>School setup · Classes</p>
+      <h2 class="title" data-r style="--i:1">Classes, sections and <em>who teaches what</em></h2>
+    </div>
+    <p class="lede" data-r style="--i:2">Build grades and sections for the year, then put a teacher against each subject in each section.</p>
+  </header><ul class="points row"><li data-r style="--i:2"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Class teacher, room and how full each section is</span></li><li data-r style="--i:3"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Pick a teacher in a cell and it saves straight away</span></li><li data-r style="--i:4"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>A progress bar shows subject slots still without a teacher</span></li></ul><div class="row2">
+  <figure class="shot web" data-r style="--i:2">
+    <div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="assets/web/academics-classes.jpg" alt="Classes and sections" decoding="async"></div>
+    <figcaption><b>Classes and sections</b><span>Sections with class teacher, room and capacity.</span></figcaption>
+  </figure>
+  <figure class="shot web" data-r style="--i:3">
+    <div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="assets/web/academics-assignments.jpg" alt="Teaching assignments" decoding="async"></div>
+    <figcaption><b>Teaching assignments</b><span>Sections by subject. Each teacher’s current load is shown next to their name.</span></figcaption>
+  </figure></div>
+      <footer class="foot"><span class="brand"><svg viewBox="0 0 64 64" width="16" height="16" role="img" aria-label="SchoolSync" class="mark"><path d="M22 8H28A4 4 0 0 1 32 12V44A4 4 0 0 1 28 48H22A16 16 0 0 1 6 32V24A16 16 0 0 1 22 8Z" fill="#0E5A63"/><path d="M38 16H42A16 16 0 0 1 58 32V40A16 16 0 0 1 42 56H38A4 4 0 0 1 34 52V20A4 4 0 0 1 38 16Z" fill="#D1411B"/></svg><b>SchoolSync</b> · Product catalogue</span><span>School setup<em>10</em></span></footer>
+    </div>
+  </section>
+
+  <section class="sheet" id="p11" data-chapter="setup" data-title="Timetable, covers and year-end promotion">
+    <div class="page  duo">
+      
+  <header class="head wide">
+    <div>
+      <p class="kicker" data-r>School setup · Timetable</p>
+      <h2 class="title" data-r style="--i:1">Timetable, covers and <em>year-end promotion</em></h2>
+    </div>
+    <p class="lede" data-r style="--i:2">Build each section’s weekly timetable, cover for absent teachers, and move a whole year of students up when the year ends.</p>
+  </header><ul class="points row"><li data-r style="--i:2"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Clashes are checked as you save</span></li><li data-r style="--i:3"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Covers for a teacher’s absence on a given day</span></li><li data-r style="--i:4"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Promotion is previewed in full before anything changes</span></li></ul><div class="row2">
+  <figure class="shot web" data-r style="--i:2">
+    <div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="assets/web/academics-timetable.jpg" alt="Timetable editor" decoding="async"></div>
+    <figcaption><b>Timetable editor</b><span>Periods by weekday for one section. Covers are marked on the lessons they replace.</span></figcaption>
+  </figure>
+  <figure class="shot web" data-r style="--i:3">
+    <div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="assets/web/academics-promotions.jpg" alt="Year-end promotion" decoding="async"></div>
+    <figcaption><b>Year-end promotion</b><span>A four-step guided flow: years and grades, exceptions, review, confirm.</span></figcaption>
+  </figure></div>
+      <footer class="foot"><span class="brand"><svg viewBox="0 0 64 64" width="16" height="16" role="img" aria-label="SchoolSync" class="mark"><path d="M22 8H28A4 4 0 0 1 32 12V44A4 4 0 0 1 28 48H22A16 16 0 0 1 6 32V24A16 16 0 0 1 22 8Z" fill="#0E5A63"/><path d="M38 16H42A16 16 0 0 1 58 32V40A16 16 0 0 1 42 56H38A4 4 0 0 1 34 52V20A4 4 0 0 1 38 16Z" fill="#D1411B"/></svg><b>SchoolSync</b> · Product catalogue</span><span>School setup<em>11</em></span></footer>
+    </div>
+  </section>
+
+  <section class="sheet" id="p12" data-chapter="people" data-title="Student records, found in seconds">
+    <div class="page  duo">
+      
+  <header class="head wide">
+    <div>
+      <p class="kicker" data-r>People · Students</p>
+      <h2 class="title" data-r style="--i:1">Student records, <em>found in seconds</em></h2>
+    </div>
+    <p class="lede" data-r style="--i:2">Search by name or admission number, filter by grade, section and status, and choose which columns to show. Open a student for the full profile.</p>
+  </header><ul class="points row"><li data-r style="--i:2"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Add one student, or import many from a CSV</span></li><li data-r style="--i:3"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Export the filtered list to CSV</span></li><li data-r style="--i:4"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Profile with parents, documents, attendance, results and fees</span></li></ul><div class="row2">
+  <figure class="shot web" data-r style="--i:2">
+    <div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="assets/web/people-students.jpg" alt="Students" decoding="async"></div>
+    <figcaption><b>Students</b><span>Search, filters, CSV export and a column picker.</span></figcaption>
+  </figure>
+  <figure class="shot web" data-r style="--i:3">
+    <div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="assets/web/people-student-detail.jpg" alt="Student profile" decoding="async"></div>
+    <figcaption><b>Student profile</b><span>Details, emergency contacts, authorised pickup, sign-in and enrolment history in one place.</span></figcaption>
+  </figure></div>
+      <footer class="foot"><span class="brand"><svg viewBox="0 0 64 64" width="16" height="16" role="img" aria-label="SchoolSync" class="mark"><path d="M22 8H28A4 4 0 0 1 32 12V44A4 4 0 0 1 28 48H22A16 16 0 0 1 6 32V24A16 16 0 0 1 22 8Z" fill="#0E5A63"/><path d="M38 16H42A16 16 0 0 1 58 32V40A16 16 0 0 1 42 56H38A4 4 0 0 1 34 52V20A4 4 0 0 1 38 16Z" fill="#D1411B"/></svg><b>SchoolSync</b> · Product catalogue</span><span>People &amp; admissions<em>12</em></span></footer>
+    </div>
+  </section>
+
+  <section class="sheet" id="p13" data-chapter="people" data-title="Edit in a side sheet, import in bulk">
+    <div class="page  duo">
+      
+  <header class="head wide">
+    <div>
+      <p class="kicker" data-r>People · Editing and import</p>
+      <h2 class="title" data-r style="--i:1">Edit in a side sheet, <em>import in bulk</em></h2>
+    </div>
+    <p class="lede" data-r style="--i:2">Changes open in a sheet beside the record, so you never lose your place. A CSV import checks every row first and says what is wrong before anything is saved.</p>
+  </header><ul class="points row"><li data-r style="--i:2"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>A warning before unsaved changes are lost</span></li><li data-r style="--i:3"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>A CSV template, with what each column means</span></li><li data-r style="--i:4"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Seat limits are checked before students are added</span></li></ul><div class="row2">
+  <figure class="shot web" data-r style="--i:2">
+    <div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="assets/web/people-student-edit.jpg" alt="Edit student details" decoding="async"></div>
+    <figcaption><b>Edit student details</b><span>Name, dates, address and emergency contacts, with Save and Cancel always in reach.</span></figcaption>
+  </figure>
+  <figure class="shot web" data-r style="--i:3">
+    <div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="assets/web/people-import.jpg" alt="Bulk import" decoding="async"></div>
+    <figcaption><b>Bulk import</b><span>Upload or paste a CSV. Rows are validated first, then imported.</span></figcaption>
+  </figure></div>
+      <footer class="foot"><span class="brand"><svg viewBox="0 0 64 64" width="16" height="16" role="img" aria-label="SchoolSync" class="mark"><path d="M22 8H28A4 4 0 0 1 32 12V44A4 4 0 0 1 28 48H22A16 16 0 0 1 6 32V24A16 16 0 0 1 22 8Z" fill="#0E5A63"/><path d="M38 16H42A16 16 0 0 1 58 32V40A16 16 0 0 1 42 56H38A4 4 0 0 1 34 52V20A4 4 0 0 1 38 16Z" fill="#D1411B"/></svg><b>SchoolSync</b> · Product catalogue</span><span>People &amp; admissions<em>13</em></span></footer>
+    </div>
+  </section>
+
+  <section class="sheet" id="p14" data-chapter="people" data-title="Staff, and applications from enquiry to enrolment">
+    <div class="page  duo">
+      
+  <header class="head wide">
+    <div>
+      <p class="kicker" data-r>People · Staff and admissions</p>
+      <h2 class="title" data-r style="--i:1">Staff, and applications <em>from enquiry to enrolment</em></h2>
+    </div>
+    <p class="lede" data-r style="--i:2">Staff profiles carry roles and sign-in status. Admissions follow an application from first enquiry to enrolment.</p>
+  </header><ul class="points row"><li data-r style="--i:2"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Teaching and non-teaching staff in one directory</span></li><li data-r style="--i:3"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Roles shown against each person</span></li><li data-r style="--i:4"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Stages: submitted, in review, waitlisted, accepted, enrolled</span></li></ul><div class="row2">
+  <figure class="shot web" data-r style="--i:2">
+    <div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="assets/web/people-staff.jpg" alt="Staff" decoding="async"></div>
+    <figcaption><b>Staff</b><span>Designation, type, roles and whether each person has a login.</span></figcaption>
+  </figure>
+  <figure class="shot web" data-r style="--i:3">
+    <div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="assets/web/people-admissions.jpg" alt="Admissions" decoding="async"></div>
+    <figcaption><b>Admissions</b><span>Applications by stage, with the parent’s contact and the grade applied for.</span></figcaption>
+  </figure></div>
+      <footer class="foot"><span class="brand"><svg viewBox="0 0 64 64" width="16" height="16" role="img" aria-label="SchoolSync" class="mark"><path d="M22 8H28A4 4 0 0 1 32 12V44A4 4 0 0 1 28 48H22A16 16 0 0 1 6 32V24A16 16 0 0 1 22 8Z" fill="#0E5A63"/><path d="M38 16H42A16 16 0 0 1 58 32V40A16 16 0 0 1 42 56H38A4 4 0 0 1 34 52V20A4 4 0 0 1 38 16Z" fill="#D1411B"/></svg><b>SchoolSync</b> · Product catalogue</span><span>People &amp; admissions<em>14</em></span></footer>
+    </div>
+  </section>
+
+  <section class="sheet" id="p15" data-chapter="attendance" data-title="Attendance the whole school can see">
+    <div class="page  duo">
+      
+  <header class="head wide">
+    <div>
+      <p class="kicker" data-r>Attendance &amp; leave</p>
+      <h2 class="title" data-r style="--i:1">Attendance the <em>whole school can see</em></h2>
+    </div>
+    <p class="lede" data-r style="--i:2">Teachers mark attendance in class. Management sees the school’s day at a glance, chases classes that have not marked, and decides leave requests.</p>
+  </header><ul class="points row"><li data-r style="--i:2"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Present, absent, late, half-day and on-leave counts</span></li><li data-r style="--i:3"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Seven-day trend and a shortage scan</span></li><li data-r style="--i:4"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Student leave with dates, type and reason</span></li><li data-r style="--i:5"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Corrections and staff attendance in their own tabs</span></li></ul><div class="row2">
+  <figure class="shot web" data-r style="--i:2">
+    <div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="assets/web/attendance-summary.jpg" alt="School attendance" decoding="async"></div>
+    <figcaption><b>School attendance</b><span>Today’s numbers, classes still to mark and a trend. The shortage scan and CSV export sit on the same page.</span></figcaption>
+  </figure>
+  <figure class="shot web" data-r style="--i:3">
+    <div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="assets/web/attendance-leave.jpg" alt="Student leave" decoding="async"></div>
+    <figcaption><b>Student leave</b><span>Pending requests with dates, type and reason. Approve or reject in a click.</span></figcaption>
+  </figure></div>
+      <footer class="foot"><span class="brand"><svg viewBox="0 0 64 64" width="16" height="16" role="img" aria-label="SchoolSync" class="mark"><path d="M22 8H28A4 4 0 0 1 32 12V44A4 4 0 0 1 28 48H22A16 16 0 0 1 6 32V24A16 16 0 0 1 22 8Z" fill="#0E5A63"/><path d="M38 16H42A16 16 0 0 1 58 32V40A16 16 0 0 1 42 56H38A4 4 0 0 1 34 52V20A4 4 0 0 1 38 16Z" fill="#D1411B"/></svg><b>SchoolSync</b> · Product catalogue</span><span>Attendance &amp; leave<em>15</em></span></footer>
+    </div>
+  </section>
+
+  <section class="sheet" id="p16" data-chapter="exams" data-title="From exam schedule to published result">
+    <div class="page  duo">
+      
+  <header class="head wide">
+    <div>
+      <p class="kicker" data-r>Exams &amp; results</p>
+      <h2 class="title" data-r style="--i:1">From exam schedule to <em>published result</em></h2>
+    </div>
+    <p class="lede" data-r style="--i:2">Plan exams and papers, let teachers enter marks, review the sheets before anything is published, and set the grade scales the school uses.</p>
+  </header><ul class="points row"><li data-r style="--i:2"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Exam status from not started to published</span></li><li data-r style="--i:3"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Teachers submit mark sheets; the principal approves or returns them</span></li><li data-r style="--i:4"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Grade scales and pass marks set by the school</span></li></ul><div class="row2">
+  <figure class="shot web" data-r style="--i:2">
+    <div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="assets/web/exams-list.jpg" alt="Examinations" decoding="async"></div>
+    <figcaption><b>Examinations</b><span>Each exam with its dates, papers and how many mark sheets are approved.</span></figcaption>
+  </figure>
+  <figure class="shot web" data-r style="--i:3">
+    <div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="assets/web/exams-review.jpg" alt="Mark sheet review" decoding="async"></div>
+    <figcaption><b>Mark sheet review</b><span>Submitted sheets from every class in one queue, with Approve and Open.</span></figcaption>
+  </figure></div>
+      <footer class="foot"><span class="brand"><svg viewBox="0 0 64 64" width="16" height="16" role="img" aria-label="SchoolSync" class="mark"><path d="M22 8H28A4 4 0 0 1 32 12V44A4 4 0 0 1 28 48H22A16 16 0 0 1 6 32V24A16 16 0 0 1 22 8Z" fill="#0E5A63"/><path d="M38 16H42A16 16 0 0 1 58 32V40A16 16 0 0 1 42 56H38A4 4 0 0 1 34 52V20A4 4 0 0 1 38 16Z" fill="#D1411B"/></svg><b>SchoolSync</b> · Product catalogue</span><span>Exams &amp; results<em>16</em></span></footer>
+    </div>
+  </section>
+
+  <section class="sheet" id="p17" data-chapter="exams" data-title="Report cards families can open">
+    <div class="page  hero">
+      
+    <div class="split">
+      <div class="side">
+  <header class="head">
+    <div>
+      <p class="kicker" data-r>Exams &amp; results · Report cards</p>
+      <h2 class="title" data-r style="--i:1">Report cards <em>families can open</em></h2>
+    </div>
+    <p class="lede" data-r style="--i:2">Class teachers add a remark and a conduct grade for each student. Publish them for the class and families see the result in the app.</p>
+  </header><ul class="points"><li data-r style="--i:2"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Remarks and conduct per student</span></li><li data-r style="--i:3"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Publish all drafts in one action</span></li><li data-r style="--i:4"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>A report card PDF from the student’s results</span></li></ul></div>
+      <div class="stage">
+  <figure class="shot web" data-r style="--i:1">
+    <div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="assets/web/exams-report-cards.jpg" alt="Report cards" decoding="async"></div>
+    <figcaption><b>Report cards</b><span>Class-teacher remarks and conduct, with Draft or Published status for each student.</span></figcaption>
+  </figure></div>
+    </div>
+      <footer class="foot"><span class="brand"><svg viewBox="0 0 64 64" width="16" height="16" role="img" aria-label="SchoolSync" class="mark"><path d="M22 8H28A4 4 0 0 1 32 12V44A4 4 0 0 1 28 48H22A16 16 0 0 1 6 32V24A16 16 0 0 1 22 8Z" fill="#0E5A63"/><path d="M38 16H42A16 16 0 0 1 58 32V40A16 16 0 0 1 42 56H38A4 4 0 0 1 34 52V20A4 4 0 0 1 38 16Z" fill="#D1411B"/></svg><b>SchoolSync</b> · Product catalogue</span><span>Exams &amp; results<em>17</em></span></footer>
+    </div>
+  </section>
+
+  <section class="sheet" id="p18" data-chapter="fees" data-title="Money in, money out, at a glance">
+    <div class="page  duo">
+      
+  <header class="head wide">
+    <div>
+      <p class="kicker" data-r>Fees &amp; finance</p>
+      <h2 class="title" data-r style="--i:1">Money in, money out, <em>at a glance</em></h2>
+    </div>
+    <p class="lede" data-r style="--i:2">The finance overview sets what was collected against what was spent, and shows what is outstanding and overdue. Invoices are raised per student and tracked until paid.</p>
+  </header><ul class="points row"><li data-r style="--i:2"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Collection rate and net position</span></li><li data-r style="--i:3"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Filter invoices by status, grade and due date</span></li><li data-r style="--i:4"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Generate dues from fee structures in one go</span></li><li data-r style="--i:5"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Export to CSV</span></li></ul><div class="row2">
+  <figure class="shot web" data-r style="--i:2">
+    <div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="assets/web/finance-overview.jpg" alt="Finance overview" decoding="async"></div>
+    <figcaption><b>Finance overview</b><span>Collected, outstanding, overdue, collection rate, expenses and refunds, with a monthly chart.</span></figcaption>
+  </figure>
+  <figure class="shot web" data-r style="--i:3">
+    <div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="assets/web/finance-invoices.jpg" alt="Invoices" decoding="async"></div>
+    <figcaption><b>Invoices</b><span>Every invoice with amount, paid, balance and status. Generate dues or raise a new invoice.</span></figcaption>
+  </figure></div>
+      <footer class="foot"><span class="brand"><svg viewBox="0 0 64 64" width="16" height="16" role="img" aria-label="SchoolSync" class="mark"><path d="M22 8H28A4 4 0 0 1 32 12V44A4 4 0 0 1 28 48H22A16 16 0 0 1 6 32V24A16 16 0 0 1 22 8Z" fill="#0E5A63"/><path d="M38 16H42A16 16 0 0 1 58 32V40A16 16 0 0 1 42 56H38A4 4 0 0 1 34 52V20A4 4 0 0 1 38 16Z" fill="#D1411B"/></svg><b>SchoolSync</b> · Product catalogue</span><span>Fees &amp; finance<em>18</em></span></footer>
+    </div>
+  </section>
+
+  <section class="sheet" id="p19" data-chapter="fees" data-title="Open an invoice, see everything">
+    <div class="page  duo">
+      
+  <header class="head wide">
+    <div>
+      <p class="kicker" data-r>Fees &amp; finance · Invoices and setup</p>
+      <h2 class="title" data-r style="--i:1">Open an invoice, <em>see everything</em></h2>
+    </div>
+    <p class="lede" data-r style="--i:2">An invoice opens in a side panel with its items, concessions and payments, and the actions that matter: record a payment, print, or void.</p>
+  </header><ul class="points row"><li data-r style="--i:2"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Fee structures per grade, with instalments and due dates</span></li><li data-r style="--i:3"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Student plans and concessions, with approval</span></li><li data-r style="--i:4"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Receipts on request</span></li></ul><div class="row2">
+  <figure class="shot web" data-r style="--i:2">
+    <div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="assets/web/finance-invoice-drawer.jpg" alt="Invoice detail" decoding="async"></div>
+    <figcaption><b>Invoice detail</b><span>Items, discounts, payments and balance, with Record payment and Print.</span></figcaption>
+  </figure>
+  <figure class="shot web" data-r style="--i:3">
+    <div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="assets/web/finance-structures.jpg" alt="Fee setup" decoding="async"></div>
+    <figcaption><b>Fee setup</b><span>Structures by grade with instalments. Plans, dues, concessions and categories are in neighbouring tabs.</span></figcaption>
+  </figure></div>
+      <footer class="foot"><span class="brand"><svg viewBox="0 0 64 64" width="16" height="16" role="img" aria-label="SchoolSync" class="mark"><path d="M22 8H28A4 4 0 0 1 32 12V44A4 4 0 0 1 28 48H22A16 16 0 0 1 6 32V24A16 16 0 0 1 22 8Z" fill="#0E5A63"/><path d="M38 16H42A16 16 0 0 1 58 32V40A16 16 0 0 1 42 56H38A4 4 0 0 1 34 52V20A4 4 0 0 1 38 16Z" fill="#D1411B"/></svg><b>SchoolSync</b> · Product catalogue</span><span>Fees &amp; finance<em>19</em></span></footer>
+    </div>
+  </section>
+
+  <section class="sheet" id="p20" data-chapter="fees" data-title="Payments, receipts and defaulters">
+    <div class="page  duo">
+      
+  <header class="head wide">
+    <div>
+      <p class="kicker" data-r>Fees &amp; finance · Payments and dues</p>
+      <h2 class="title" data-r style="--i:1">Payments, receipts and <em>defaulters</em></h2>
+    </div>
+    <p class="lede" data-r style="--i:2">Every payment carries a receipt number and a method. Fee reports show who owes what, how old the dues are and how collection is going.</p>
+  </header><ul class="points row"><li data-r style="--i:2"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Cash, card, UPI and online payments</span></li><li data-r style="--i:3"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Refunds and online payments in their own tabs</span></li><li data-r style="--i:4"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Ageing buckets and a defaulters list for follow-up</span></li></ul><div class="row2">
+  <figure class="shot web" data-r style="--i:2">
+    <div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="assets/web/finance-payments.jpg" alt="Payments and receipts" decoding="async"></div>
+    <figcaption><b>Payments and receipts</b><span>Receipt, student, method, amount and status, filterable by date and method.</span></figcaption>
+  </figure>
+  <figure class="shot web" data-r style="--i:3">
+    <div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="assets/web/finance-reports.jpg" alt="Outstanding and ageing" decoding="async"></div>
+    <figcaption><b>Outstanding and ageing</b><span>How long unpaid balances have been due. Defaulters and collection reports are in the tabs.</span></figcaption>
+  </figure></div>
+      <footer class="foot"><span class="brand"><svg viewBox="0 0 64 64" width="16" height="16" role="img" aria-label="SchoolSync" class="mark"><path d="M22 8H28A4 4 0 0 1 32 12V44A4 4 0 0 1 28 48H22A16 16 0 0 1 6 32V24A16 16 0 0 1 22 8Z" fill="#0E5A63"/><path d="M38 16H42A16 16 0 0 1 58 32V40A16 16 0 0 1 42 56H38A4 4 0 0 1 34 52V20A4 4 0 0 1 38 16Z" fill="#D1411B"/></svg><b>SchoolSync</b> · Product catalogue</span><span>Fees &amp; finance<em>20</em></span></footer>
+    </div>
+  </section>
+
+  <section class="sheet" id="p21" data-chapter="fees" data-title="Expenses with approvals">
+    <div class="page  hero">
+      
+    <div class="split">
+      <div class="side">
+  <header class="head">
+    <div>
+      <p class="kicker" data-r>Fees &amp; finance · Expenses</p>
+      <h2 class="title" data-r style="--i:1">Expenses with <em>approvals</em></h2>
+    </div>
+    <p class="lede" data-r style="--i:2">Record what the school spends, with receipts. Larger expenses wait for approval before they count.</p>
+  </header><ul class="points"><li data-r style="--i:2"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>An approval queue for larger expenses</span></li><li data-r style="--i:3"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>A summary by month and category</span></li><li data-r style="--i:4"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Export to CSV</span></li></ul></div>
+      <div class="stage">
+  <figure class="shot web" data-r style="--i:1">
+    <div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="assets/web/finance-expenses.jpg" alt="Expenses" decoding="async"></div>
+    <figcaption><b>Expenses</b><span>Spend by category and date, with Approved or Pending status.</span></figcaption>
+  </figure></div>
+    </div>
+      <footer class="foot"><span class="brand"><svg viewBox="0 0 64 64" width="16" height="16" role="img" aria-label="SchoolSync" class="mark"><path d="M22 8H28A4 4 0 0 1 32 12V44A4 4 0 0 1 28 48H22A16 16 0 0 1 6 32V24A16 16 0 0 1 22 8Z" fill="#0E5A63"/><path d="M38 16H42A16 16 0 0 1 58 32V40A16 16 0 0 1 42 56H38A4 4 0 0 1 34 52V20A4 4 0 0 1 38 16Z" fill="#D1411B"/></svg><b>SchoolSync</b> · Product catalogue</span><span>Fees &amp; finance<em>21</em></span></footer>
+    </div>
+  </section>
+
+  <section class="sheet" id="p22" data-chapter="comms" data-title="Announcements that reach the right people">
+    <div class="page  duo">
+      
+  <header class="head wide">
+    <div>
+      <p class="kicker" data-r>Communication</p>
+      <h2 class="title" data-r style="--i:1">Announcements that <em>reach the right people</em></h2>
+    </div>
+    <p class="lede" data-r style="--i:2">Write once, choose who should receive it, then publish now or save a draft. Delivery and read status are tracked for every announcement.</p>
+  </header><ul class="points row"><li data-r style="--i:2"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Audience: everyone, a role, a grade or a section</span></li><li data-r style="--i:3"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Priority: normal, important or urgent</span></li><li data-r style="--i:4"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Read counts and acknowledgements</span></li><li data-r style="--i:5"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Push and e-mail, with quiet hours</span></li></ul><div class="row2">
+  <figure class="shot web" data-r style="--i:2">
+    <div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="assets/web/comms-announcements.jpg" alt="Announcements" decoding="async"></div>
+    <figcaption><b>Announcements</b><span>Draft, scheduled, published, expired and archived, with audience, read counts and acknowledgements.</span></figcaption>
+  </figure>
+  <figure class="shot web" data-r style="--i:3">
+    <div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="assets/web/comms-compose.jpg" alt="Compose" decoding="async"></div>
+    <figcaption><b>Compose</b><span>Title, message and audience. Save a draft or publish.</span></figcaption>
+  </figure></div>
+      <footer class="foot"><span class="brand"><svg viewBox="0 0 64 64" width="16" height="16" role="img" aria-label="SchoolSync" class="mark"><path d="M22 8H28A4 4 0 0 1 32 12V44A4 4 0 0 1 28 48H22A16 16 0 0 1 6 32V24A16 16 0 0 1 22 8Z" fill="#0E5A63"/><path d="M38 16H42A16 16 0 0 1 58 32V40A16 16 0 0 1 42 56H38A4 4 0 0 1 34 52V20A4 4 0 0 1 38 16Z" fill="#D1411B"/></svg><b>SchoolSync</b> · Product catalogue</span><span>Communication &amp; events<em>22</em></span></footer>
+    </div>
+  </section>
+
+  <section class="sheet" id="p23" data-chapter="comms" data-title="One calendar for the whole school">
+    <div class="page  hero">
+      
+    <div class="split">
+      <div class="side">
+  <header class="head">
+    <div>
+      <p class="kicker" data-r>Communication · Calendar</p>
+      <h2 class="title" data-r style="--i:1">One calendar for the <em>whole school</em></h2>
+    </div>
+    <p class="lede" data-r style="--i:2">Holidays, events, exams, homework deadlines and parent–teacher meetings share one calendar, in month and agenda views.</p>
+  </header><ul class="points"><li data-r style="--i:2"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Colour-coded by type</span></li><li data-r style="--i:3"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Registration and consent on events</span></li><li data-r style="--i:4"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Parent–teacher meetings alongside</span></li></ul></div>
+      <div class="stage">
+  <figure class="shot web" data-r style="--i:1">
+    <div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="assets/web/comms-events.jpg" alt="Events and calendar" decoding="async"></div>
+    <figcaption><b>Events and calendar</b><span>Month view with Holiday, Event, Exam paper, Homework due and Other categories.</span></figcaption>
+  </figure></div>
+    </div>
+      <footer class="foot"><span class="brand"><svg viewBox="0 0 64 64" width="16" height="16" role="img" aria-label="SchoolSync" class="mark"><path d="M22 8H28A4 4 0 0 1 32 12V44A4 4 0 0 1 28 48H22A16 16 0 0 1 6 32V24A16 16 0 0 1 22 8Z" fill="#0E5A63"/><path d="M38 16H42A16 16 0 0 1 58 32V40A16 16 0 0 1 42 56H38A4 4 0 0 1 34 52V20A4 4 0 0 1 38 16Z" fill="#D1411B"/></svg><b>SchoolSync</b> · Product catalogue</span><span>Communication &amp; events<em>23</em></span></footer>
+    </div>
+  </section>
+
+  <section class="sheet" id="p24" data-chapter="ops" data-title="Transport and library">
+    <div class="page  duo">
+      
+  <header class="head wide">
+    <div>
+      <p class="kicker" data-r>Operations</p>
+      <h2 class="title" data-r style="--i:1">Transport and <em>library</em></h2>
+    </div>
+    <p class="lede" data-r style="--i:2">Routes, stops and buses with seat counts, and a library catalogue with issue, return and overdue tracking.</p>
+  </header><ul class="points row"><li data-r style="--i:2"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Seats left on each route</span></li><li data-r style="--i:3"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Students allocated to each bus</span></li><li data-r style="--i:4"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Availability, shelf and category for every book</span></li><li data-r style="--i:5"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Loans, overdue items and lending rules</span></li></ul><div class="row2">
+  <figure class="shot web" data-r style="--i:2">
+    <div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="assets/web/ops-transport.jpg" alt="Transport" decoding="async"></div>
+    <figcaption><b>Transport</b><span>Routes with bus, pickup and drop times, stops and how many seats are taken.</span></figcaption>
+  </figure>
+  <figure class="shot web" data-r style="--i:3">
+    <div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="assets/web/ops-library.jpg" alt="Library" decoding="async"></div>
+    <figcaption><b>Library</b><span>The catalogue with availability. Loans, overdue and policy have their own tabs.</span></figcaption>
+  </figure></div>
+      <footer class="foot"><span class="brand"><svg viewBox="0 0 64 64" width="16" height="16" role="img" aria-label="SchoolSync" class="mark"><path d="M22 8H28A4 4 0 0 1 32 12V44A4 4 0 0 1 28 48H22A16 16 0 0 1 6 32V24A16 16 0 0 1 22 8Z" fill="#0E5A63"/><path d="M38 16H42A16 16 0 0 1 58 32V40A16 16 0 0 1 42 56H38A4 4 0 0 1 34 52V20A4 4 0 0 1 38 16Z" fill="#D1411B"/></svg><b>SchoolSync</b> · Product catalogue</span><span>Operations &amp; reports<em>24</em></span></footer>
+    </div>
+  </section>
+
+  <section class="sheet" id="p25" data-chapter="ops" data-title="Reports, grouped by the question they answer">
+    <div class="page  hero">
+      
+    <div class="split">
+      <div class="side">
+  <header class="head">
+    <div>
+      <p class="kicker" data-r>Operations · Reports</p>
+      <h2 class="title" data-r style="--i:1">Reports, grouped by <em>the question they answer</em></h2>
+    </div>
+    <p class="lede" data-r style="--i:2">Attendance, fees and academics are laid out by what you want to know, not by table. Open a report to filter it, and export it where a CSV is offered.</p>
+  </header><ul class="points"><li data-r style="--i:2"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Attendance, leave and absenteeism</span></li><li data-r style="--i:3"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Outstanding fees, defaulters and collection</span></li><li data-r style="--i:4"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Expense summary</span></li><li data-r style="--i:5"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>CSV export on most reports</span></li></ul></div>
+      <div class="stage">
+  <figure class="shot web" data-r style="--i:1">
+    <div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="assets/web/reports-hub.jpg" alt="Reports hub" decoding="async"></div>
+    <figcaption><b>Reports hub</b><span>Each card says what the report answers and whether a CSV export is available.</span></figcaption>
+  </figure></div>
+    </div>
+      <footer class="foot"><span class="brand"><svg viewBox="0 0 64 64" width="16" height="16" role="img" aria-label="SchoolSync" class="mark"><path d="M22 8H28A4 4 0 0 1 32 12V44A4 4 0 0 1 28 48H22A16 16 0 0 1 6 32V24A16 16 0 0 1 22 8Z" fill="#0E5A63"/><path d="M38 16H42A16 16 0 0 1 58 32V40A16 16 0 0 1 42 56H38A4 4 0 0 1 34 52V20A4 4 0 0 1 38 16Z" fill="#D1411B"/></svg><b>SchoolSync</b> · Product catalogue</span><span>Operations &amp; reports<em>25</em></span></footer>
+    </div>
+  </section>
+
+  <section class="sheet" id="p26" data-chapter="admin" data-title="Who can do what, set by the school">
+    <div class="page  duo">
+      
+  <header class="head wide">
+    <div>
+      <p class="kicker" data-r>Settings &amp; access · Roles</p>
+      <h2 class="title" data-r style="--i:1">Who can do what, <em>set by the school</em></h2>
+    </div>
+    <p class="lede" data-r style="--i:2">Every role is a list of actions on records, each limited to a scope: own, linked children, assigned classes, or the whole school. Start from the built-in roles and adjust.</p>
+  </header><ul class="points row"><li data-r style="--i:2"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Built-in roles for principal, administrator, accountant, office and more</span></li><li data-r style="--i:3"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Scope: own, linked, assigned, school</span></li><li data-r style="--i:4"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Actions: view, create, edit, approve, publish, export, delete</span></li><li data-r style="--i:5"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Reset any role to its built-in setting</span></li></ul><div class="row2">
+  <figure class="shot web" data-r style="--i:2">
+    <div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="assets/web/settings-roles.jpg" alt="Roles and permissions" decoding="async"></div>
+    <figcaption><b>Roles and permissions</b><span>A matrix of modules by action, with a scope picker on each row.</span></figcaption>
+  </figure>
+  <figure class="shot web" data-r style="--i:3">
+    <div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="assets/web/settings-users.jpg" alt="User accounts" decoding="async"></div>
+    <figcaption><b>User accounts</b><span>Everyone who can sign in: staff, students and parents, with role and last sign-in.</span></figcaption>
+  </figure></div>
+      <footer class="foot"><span class="brand"><svg viewBox="0 0 64 64" width="16" height="16" role="img" aria-label="SchoolSync" class="mark"><path d="M22 8H28A4 4 0 0 1 32 12V44A4 4 0 0 1 28 48H22A16 16 0 0 1 6 32V24A16 16 0 0 1 22 8Z" fill="#0E5A63"/><path d="M38 16H42A16 16 0 0 1 58 32V40A16 16 0 0 1 42 56H38A4 4 0 0 1 34 52V20A4 4 0 0 1 38 16Z" fill="#D1411B"/></svg><b>SchoolSync</b> · Product catalogue</span><span>Settings &amp; access<em>26</em></span></footer>
+    </div>
+  </section>
+
+  <section class="sheet" id="p27" data-chapter="admin" data-title="The school’s identity, and a record of what happens">
+    <div class="page  duo">
+      
+  <header class="head wide">
+    <div>
+      <p class="kicker" data-r>Settings &amp; access · Identity and audit</p>
+      <h2 class="title" data-r style="--i:1">The school’s identity, and <em>a record of what happens</em></h2>
+    </div>
+    <p class="lede" data-r style="--i:2">Logo, name and colour make the app the school’s own. The audit log shows who did what and when; entries cannot be edited or deleted.</p>
+  </header><ul class="points row"><li data-r style="--i:2"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>The school colour is softened automatically so text stays readable</span></li><li data-r style="--i:3"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Tabs for attendance, school days, exams, fees, library, notifications and features</span></li><li data-r style="--i:4"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Sign-ins and sensitive actions are logged</span></li></ul><div class="row2">
+  <figure class="shot web" data-r style="--i:2">
+    <div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="assets/web/settings-school.jpg" alt="School profile and branding" decoding="async"></div>
+    <figcaption><b>School profile and branding</b><span>Logo, name and school colour, with tabs for the school’s rules.</span></figcaption>
+  </figure>
+  <figure class="shot web" data-r style="--i:3">
+    <div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="assets/web/settings-audit.jpg" alt="Audit log" decoding="async"></div>
+    <figcaption><b>Audit log</b><span>Who, what, where and when, filterable and exportable to CSV.</span></figcaption>
+  </figure></div>
+      <footer class="foot"><span class="brand"><svg viewBox="0 0 64 64" width="16" height="16" role="img" aria-label="SchoolSync" class="mark"><path d="M22 8H28A4 4 0 0 1 32 12V44A4 4 0 0 1 28 48H22A16 16 0 0 1 6 32V24A16 16 0 0 1 22 8Z" fill="#0E5A63"/><path d="M38 16H42A16 16 0 0 1 58 32V40A16 16 0 0 1 42 56H38A4 4 0 0 1 34 52V20A4 4 0 0 1 38 16Z" fill="#D1411B"/></svg><b>SchoolSync</b> · Product catalogue</span><span>Settings &amp; access<em>27</em></span></footer>
+    </div>
+  </section>
+
+  <section class="sheet" id="p28" data-chapter="teacher" data-title="A home built for the school day">
+    <div class="page  duo">
+      
+  <header class="head wide">
+    <div>
+      <p class="kicker" data-r>Teachers · Web</p>
+      <h2 class="title" data-r style="--i:1">A home built for <em>the school day</em></h2>
+    </div>
+    <p class="lede" data-r style="--i:2">Teachers open on today: attendance still to mark, homework to review, marks to enter and requests waiting. They see only the classes they teach.</p>
+  </header><ul class="points row"><li data-r style="--i:2"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Today’s lessons with period and room</span></li><li data-r style="--i:3"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Leave requests and parent meetings waiting</span></li><li data-r style="--i:4"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Roll call in a few taps</span></li></ul><div class="row2">
+  <figure class="shot web" data-r style="--i:2">
+    <div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="assets/web/teacher-home.jpg" alt="Teacher home" decoding="async"></div>
+    <figcaption><b>Teacher home</b><span>What needs doing today, the day’s lessons and requests waiting.</span></figcaption>
+  </figure>
+  <figure class="shot web" data-r style="--i:3">
+    <div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="assets/web/teacher-rollcall.jpg" alt="Roll call" decoding="async"></div>
+    <figcaption><b>Roll call</b><span>Present, absent, late or half-day for each student, with keyboard shortcuts and Mark all present.</span></figcaption>
+  </figure></div>
+      <footer class="foot"><span class="brand"><svg viewBox="0 0 64 64" width="16" height="16" role="img" aria-label="SchoolSync" class="mark"><path d="M22 8H28A4 4 0 0 1 32 12V44A4 4 0 0 1 28 48H22A16 16 0 0 1 6 32V24A16 16 0 0 1 22 8Z" fill="#0E5A63"/><path d="M38 16H42A16 16 0 0 1 58 32V40A16 16 0 0 1 42 56H38A4 4 0 0 1 34 52V20A4 4 0 0 1 38 16Z" fill="#D1411B"/></svg><b>SchoolSync</b> · Product catalogue</span><span>For teachers<em>28</em></span></footer>
+    </div>
+  </section>
+
+  <section class="sheet" id="p29" data-chapter="teacher" data-title="Homework and marks, without the paperwork">
+    <div class="page  duo">
+      
+  <header class="head wide">
+    <div>
+      <p class="kicker" data-r>Teachers · Web</p>
+      <h2 class="title" data-r style="--i:1">Homework and marks, <em>without the paperwork</em></h2>
+    </div>
+    <p class="lede" data-r style="--i:2">Set homework for a class, see who has handed in and review the work. Enter marks per student against a mark sheet and submit it for approval.</p>
+  </header><ul class="points row"><li data-r style="--i:2"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Hand-in progress on every task</span></li><li data-r style="--i:3"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Marks entry with absent flags and running totals</span></li><li data-r style="--i:4"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>A draft is kept until you submit</span></li></ul><div class="row2">
+  <figure class="shot web" data-r style="--i:2">
+    <div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="assets/web/teacher-homework.jpg" alt="Homework" decoding="async"></div>
+    <figcaption><b>Homework</b><span>Set by me, or all homework in my classes, with hand-in progress.</span></figcaption>
+  </figure>
+  <figure class="shot web" data-r style="--i:3">
+    <div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="assets/web/teacher-marks.jpg" alt="Marks entry" decoding="async"></div>
+    <figcaption><b>Marks entry</b><span>One field per student, with average, highest and lowest shown as you type.</span></figcaption>
+  </figure></div>
+      <footer class="foot"><span class="brand"><svg viewBox="0 0 64 64" width="16" height="16" role="img" aria-label="SchoolSync" class="mark"><path d="M22 8H28A4 4 0 0 1 32 12V44A4 4 0 0 1 28 48H22A16 16 0 0 1 6 32V24A16 16 0 0 1 22 8Z" fill="#0E5A63"/><path d="M38 16H42A16 16 0 0 1 58 32V40A16 16 0 0 1 42 56H38A4 4 0 0 1 34 52V20A4 4 0 0 1 38 16Z" fill="#D1411B"/></svg><b>SchoolSync</b> · Product catalogue</span><span>For teachers<em>29</em></span></footer>
+    </div>
+  </section>
+
+  <section class="sheet" id="p30" data-chapter="teacher" data-title="My classes and my week">
+    <div class="page  duo">
+      
+  <header class="head wide">
+    <div>
+      <p class="kicker" data-r>Teachers · Web</p>
+      <h2 class="title" data-r style="--i:1">My classes and <em>my week</em></h2>
+    </div>
+    <p class="lede" data-r style="--i:2">Class pages show each student’s attendance and homework record. The timetable shows the week’s lessons, including any cover for a colleague.</p>
+  </header><ul class="points row"><li data-r style="--i:2"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Subjects and syllabus progress for each class</span></li><li data-r style="--i:3"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Attendance and homework history per student</span></li></ul><div class="row2">
+  <figure class="shot web" data-r style="--i:2">
+    <div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="assets/web/teacher-class.jpg" alt="Class overview" decoding="async"></div>
+    <figcaption><b>Class overview</b><span>Students with attendance over 30 days and homework handed in.</span></figcaption>
+  </figure>
+  <figure class="shot web" data-r style="--i:3">
+    <div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="assets/web/teacher-timetable.jpg" alt="My timetable" decoding="async"></div>
+    <figcaption><b>My timetable</b><span>The week’s lessons, with covers marked.</span></figcaption>
+  </figure></div>
+      <footer class="foot"><span class="brand"><svg viewBox="0 0 64 64" width="16" height="16" role="img" aria-label="SchoolSync" class="mark"><path d="M22 8H28A4 4 0 0 1 32 12V44A4 4 0 0 1 28 48H22A16 16 0 0 1 6 32V24A16 16 0 0 1 22 8Z" fill="#0E5A63"/><path d="M38 16H42A16 16 0 0 1 58 32V40A16 16 0 0 1 42 56H38A4 4 0 0 1 34 52V20A4 4 0 0 1 38 16Z" fill="#D1411B"/></svg><b>SchoolSync</b> · Product catalogue</span><span>For teachers<em>30</em></span></footer>
+    </div>
+  </section>
+
+  <section class="sheet" id="p31" data-chapter="teacher" data-title="The teacher’s day, in a pocket">
+    <div class="page  phones">
+      <div class="split phonesplit"><div class="side">
+  <header class="head">
+    <div>
+      <p class="kicker" data-r>Teachers · Mobile</p>
+      <h2 class="title" data-r style="--i:1">The teacher’s day, <em>in a pocket</em></h2>
+    </div>
+    <p class="lede" data-r style="--i:2">Roll call, homework and marks are what teachers do most. On the phone each one is a short, thumb-friendly flow.</p>
+  </header><ul class="points"><li data-r style="--i:2"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Mark everyone present, then change the exceptions</span></li><li data-r style="--i:3"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>See hand-in progress at a glance</span></li><li data-r style="--i:4"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Save marks as a draft, submit when done</span></li></ul></div><div class="phones">
+  <figure class="shot phone" data-r="phone" style="--i:2">
+    <div class="device"><img src="assets/mobile/10-teacher-home.png" alt="Home" decoding="async"></div>
+    <figcaption><b>Home</b><span>Attendance to mark, today’s lessons and to-dos.</span></figcaption>
+  </figure>
+  <figure class="shot phone" data-r="phone" style="--i:3">
+    <div class="device"><img src="assets/mobile/11-teacher-rollcall.png" alt="Roll call" decoding="async"></div>
+    <figcaption><b>Roll call</b><span>Tap present or absent for each student, or Mark all present.</span></figcaption>
+  </figure>
+  <figure class="shot phone" data-r="phone" style="--i:4">
+    <div class="device"><img src="assets/mobile/12-teacher-homework.png" alt="Homework" decoding="async"></div>
+    <figcaption><b>Homework</b><span>Active, drafts and closed, with hand-in progress.</span></figcaption>
+  </figure>
+  <figure class="shot phone" data-r="phone" style="--i:5">
+    <div class="device"><img src="assets/mobile/13-teacher-marks.png" alt="Marks" decoding="async"></div>
+    <figcaption><b>Marks</b><span>Enter marks for each student. Save a draft or submit.</span></figcaption>
+  </figure></div></div>
+      <footer class="foot"><span class="brand"><svg viewBox="0 0 64 64" width="16" height="16" role="img" aria-label="SchoolSync" class="mark"><path d="M22 8H28A4 4 0 0 1 32 12V44A4 4 0 0 1 28 48H22A16 16 0 0 1 6 32V24A16 16 0 0 1 22 8Z" fill="#0E5A63"/><path d="M38 16H42A16 16 0 0 1 58 32V40A16 16 0 0 1 42 56H38A4 4 0 0 1 34 52V20A4 4 0 0 1 38 16Z" fill="#D1411B"/></svg><b>SchoolSync</b> · Product catalogue</span><span>For teachers<em>31</em></span></footer>
+    </div>
+  </section>
+
+  <section class="sheet" id="p32" data-chapter="student" data-title="Today, at a glance">
+    <div class="page  duo">
+      
+  <header class="head wide">
+    <div>
+      <p class="kicker" data-r>Students · Web</p>
+      <h2 class="title" data-r style="--i:1">Today, <em>at a glance</em></h2>
+    </div>
+    <p class="lede" data-r style="--i:2">Students get five simple tabs: Home, My Tasks, Calendar, Learning and Profile. Home shows attendance, homework due, open tasks and results.</p>
+  </header><ul class="points row"><li data-r style="--i:2"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Today’s classes, with the lesson happening now</span></li><li data-r style="--i:3"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Announcements from the school</span></li><li data-r style="--i:4"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Personal tasks next to homework</span></li></ul><div class="row2">
+  <figure class="shot web" data-r style="--i:2">
+    <div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="assets/web/student-home.jpg" alt="Student home" decoding="async"></div>
+    <figcaption><b>Student home</b><span>Attendance, homework to do, open tasks, results, today’s classes and announcements.</span></figcaption>
+  </figure>
+  <figure class="shot web" data-r style="--i:3">
+    <div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="assets/web/student-tasks.jpg" alt="My Tasks" decoding="async"></div>
+    <figcaption><b>My Tasks</b><span>Homework and personal to-dos in one list, with overdue items flagged.</span></figcaption>
+  </figure></div>
+      <footer class="foot"><span class="brand"><svg viewBox="0 0 64 64" width="16" height="16" role="img" aria-label="SchoolSync" class="mark"><path d="M22 8H28A4 4 0 0 1 32 12V44A4 4 0 0 1 28 48H22A16 16 0 0 1 6 32V24A16 16 0 0 1 22 8Z" fill="#0E5A63"/><path d="M38 16H42A16 16 0 0 1 58 32V40A16 16 0 0 1 42 56H38A4 4 0 0 1 34 52V20A4 4 0 0 1 38 16Z" fill="#D1411B"/></svg><b>SchoolSync</b> · Product catalogue</span><span>For students<em>32</em></span></footer>
+    </div>
+  </section>
+
+  <section class="sheet" id="p33" data-chapter="student" data-title="Homework, results and progress">
+    <div class="page  duo">
+      
+  <header class="head wide">
+    <div>
+      <p class="kicker" data-r>Students · Web</p>
+      <h2 class="title" data-r style="--i:1">Homework, results and <em>progress</em></h2>
+    </div>
+    <p class="lede" data-r style="--i:2">The Learning tab holds homework with hand-in status, the timetable, study materials, syllabus and exams. Results show a term at a glance and progress across exams.</p>
+  </header><ul class="points row"><li data-r style="--i:2"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Homework with due dates, status and marks</span></li><li data-r style="--i:3"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Study materials and syllabus</span></li><li data-r style="--i:4"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Report card as a PDF</span></li></ul><div class="row2">
+  <figure class="shot web" data-r style="--i:2">
+    <div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="assets/web/student-learning.jpg" alt="Learning" decoding="async"></div>
+    <figcaption><b>Learning</b><span>Homework with due dates, hand-in status and marks.</span></figcaption>
+  </figure>
+  <figure class="shot web" data-r style="--i:3">
+    <div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="assets/web/student-results.jpg" alt="Results" decoding="async"></div>
+    <figcaption><b>Results</b><span>Overall percentage, grade and class rank, with a chart by subject.</span></figcaption>
+  </figure></div>
+      <footer class="foot"><span class="brand"><svg viewBox="0 0 64 64" width="16" height="16" role="img" aria-label="SchoolSync" class="mark"><path d="M22 8H28A4 4 0 0 1 32 12V44A4 4 0 0 1 28 48H22A16 16 0 0 1 6 32V24A16 16 0 0 1 22 8Z" fill="#0E5A63"/><path d="M38 16H42A16 16 0 0 1 58 32V40A16 16 0 0 1 42 56H38A4 4 0 0 1 34 52V20A4 4 0 0 1 38 16Z" fill="#D1411B"/></svg><b>SchoolSync</b> · Product catalogue</span><span>For students<em>33</em></span></footer>
+    </div>
+  </section>
+
+  <section class="sheet" id="p34" data-chapter="student" data-title="A calendar that includes your own deadlines">
+    <div class="page  duo">
+      
+  <header class="head wide">
+    <div>
+      <p class="kicker" data-r>Students · Web</p>
+      <h2 class="title" data-r style="--i:1">A calendar that includes <em>your own deadlines</em></h2>
+    </div>
+    <p class="lede" data-r style="--i:2">Classes, exams, homework deadlines, holidays and school events share one calendar, in month and agenda views.</p>
+  </header><ul class="points row"><li data-r style="--i:2"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Exams and homework due dates on the same grid</span></li><li data-r style="--i:3"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Holidays and school events</span></li></ul><div class="row2">
+  <figure class="shot web" data-r style="--i:2">
+    <div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="assets/web/student-calendar.jpg" alt="Calendar" decoding="async"></div>
+    <figcaption><b>Calendar</b><span>Month view with exams, homework due dates and holidays.</span></figcaption>
+  </figure>
+  <figure class="shot web" data-r style="--i:3">
+    <div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="assets/web/student-home-dark.jpg" alt="Dark mode" decoding="async"></div>
+    <figcaption><b>Dark mode</b><span>Available on every screen, for every role.</span></figcaption>
+  </figure></div>
+      <footer class="foot"><span class="brand"><svg viewBox="0 0 64 64" width="16" height="16" role="img" aria-label="SchoolSync" class="mark"><path d="M22 8H28A4 4 0 0 1 32 12V44A4 4 0 0 1 28 48H22A16 16 0 0 1 6 32V24A16 16 0 0 1 22 8Z" fill="#0E5A63"/><path d="M38 16H42A16 16 0 0 1 58 32V40A16 16 0 0 1 42 56H38A4 4 0 0 1 34 52V20A4 4 0 0 1 38 16Z" fill="#D1411B"/></svg><b>SchoolSync</b> · Product catalogue</span><span>For students<em>34</em></span></footer>
+    </div>
+  </section>
+
+  <section class="sheet" id="p35" data-chapter="student" data-title="Everything for a student, on the phone">
+    <div class="page  phones">
+      <div class="split phonesplit"><div class="side">
+  <header class="head">
+    <div>
+      <p class="kicker" data-r>Students · Mobile</p>
+      <h2 class="title" data-r style="--i:1">Everything for a student, <em>on the phone</em></h2>
+    </div>
+    <p class="lede" data-r style="--i:2">The home screen is short on purpose: what is on now, shortcuts for what students do most, and only what is due soon. The same five tabs as the web sit below.</p>
+  </header><ul class="points"><li data-r style="--i:2"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Apply for leave, check attendance, homework and results in one tap</span></li><li data-r style="--i:3"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Today’s classes as a swipeable row</span></li><li data-r style="--i:4"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Homework detail with feedback from the teacher</span></li></ul></div><div class="phones">
+  <figure class="shot phone" data-r="phone" style="--i:2">
+    <div class="device"><img src="assets/mobile/05-student-home.png" alt="Home" decoding="async"></div>
+    <figcaption><b>Home</b><span>The lesson on now, one-tap shortcuts and three numbers at a glance.</span></figcaption>
+  </figure>
+  <figure class="shot phone" data-r="phone" style="--i:3">
+    <div class="device"><img src="assets/mobile/05b-student-home-scrolled.png" alt="Today and due soon" decoding="async"></div>
+    <figcaption><b>Today and due soon</b><span>Classes as a swipeable row, the next exam, homework due and the latest notice.</span></figcaption>
+  </figure>
+  <figure class="shot phone" data-r="phone" style="--i:4">
+    <div class="device"><img src="assets/mobile/06-student-homework.png" alt="Homework detail" decoding="async"></div>
+    <figcaption><b>Homework detail</b><span>Instructions, due date, the student’s submission, marks and teacher feedback.</span></figcaption>
+  </figure>
+  <figure class="shot phone" data-r="phone" style="--i:5">
+    <div class="device"><img src="assets/mobile/09-student-results.png" alt="Report card" decoding="async"></div>
+    <figcaption><b>Report card</b><span>Term result with percentage, grade, rank and every subject.</span></figcaption>
+  </figure></div></div>
+      <footer class="foot"><span class="brand"><svg viewBox="0 0 64 64" width="16" height="16" role="img" aria-label="SchoolSync" class="mark"><path d="M22 8H28A4 4 0 0 1 32 12V44A4 4 0 0 1 28 48H22A16 16 0 0 1 6 32V24A16 16 0 0 1 22 8Z" fill="#0E5A63"/><path d="M38 16H42A16 16 0 0 1 58 32V40A16 16 0 0 1 42 56H38A4 4 0 0 1 34 52V20A4 4 0 0 1 38 16Z" fill="#D1411B"/></svg><b>SchoolSync</b> · Product catalogue</span><span>For students<em>35</em></span></footer>
+    </div>
+  </section>
+
+  <section class="sheet" id="p36" data-chapter="parent" data-title="Every child, one account">
+    <div class="page  duo">
+      
+  <header class="head wide">
+    <div>
+      <p class="kicker" data-r>Parents · Web</p>
+      <h2 class="title" data-r style="--i:1">Every child, <em>one account</em></h2>
+    </div>
+    <p class="lede" data-r style="--i:2">Parents see only the children whose link the school has verified, and switch between them from the top bar.</p>
+  </header><ul class="points row"><li data-r style="--i:2"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Attendance, homework and fees for the selected child</span></li><li data-r style="--i:3"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Fee balance, next due date and receipts</span></li><li data-r style="--i:4"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Parent–teacher meetings</span></li></ul><div class="row2">
+  <figure class="shot web" data-r style="--i:2">
+    <div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="assets/web/parent-home.jpg" alt="Parent home" decoding="async"></div>
+    <figcaption><b>Parent home</b><span>Attendance, homework to do, fees due, the child’s day and meetings.</span></figcaption>
+  </figure>
+  <figure class="shot web" data-r style="--i:3">
+    <div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="assets/web/parent-fees.jpg" alt="Fees" decoding="async"></div>
+    <figcaption><b>Fees</b><span>What is due now, overdue amounts, the next due date, invoices and payment history.</span></figcaption>
+  </figure></div>
+      <footer class="foot"><span class="brand"><svg viewBox="0 0 64 64" width="16" height="16" role="img" aria-label="SchoolSync" class="mark"><path d="M22 8H28A4 4 0 0 1 32 12V44A4 4 0 0 1 28 48H22A16 16 0 0 1 6 32V24A16 16 0 0 1 22 8Z" fill="#0E5A63"/><path d="M38 16H42A16 16 0 0 1 58 32V40A16 16 0 0 1 42 56H38A4 4 0 0 1 34 52V20A4 4 0 0 1 38 16Z" fill="#D1411B"/></svg><b>SchoolSync</b> · Product catalogue</span><span>For parents<em>36</em></span></footer>
+    </div>
+  </section>
+
+  <section class="sheet" id="p37" data-chapter="parent" data-title="Attendance and school news">
+    <div class="page  duo">
+      
+  <header class="head wide">
+    <div>
+      <p class="kicker" data-r>Parents · Web</p>
+      <h2 class="title" data-r style="--i:1">Attendance and <em>school news</em></h2>
+    </div>
+    <p class="lede" data-r style="--i:2">A month-by-month view shows attendance at a glance, with records and leave in their own tabs. Announcements, events and meetings arrive in one place.</p>
+  </header><ul class="points row"><li data-r style="--i:2"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Attendance rate, daily counts and a monthly heat map</span></li><li data-r style="--i:3"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Announcements with priority</span></li><li data-r style="--i:4"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Events, calendar, meetings and notifications</span></li></ul><div class="row2">
+  <figure class="shot web" data-r style="--i:2">
+    <div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="assets/web/parent-attendance.jpg" alt="Attendance" decoding="async"></div>
+    <figcaption><b>Attendance</b><span>Attendance rate, daily counts and a month-by-month view.</span></figcaption>
+  </figure>
+  <figure class="shot web" data-r style="--i:3">
+    <div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="assets/web/parent-communication.jpg" alt="Communication" decoding="async"></div>
+    <figcaption><b>Communication</b><span>Announcements with priority, plus events, calendar, meetings and notifications.</span></figcaption>
+  </figure></div>
+      <footer class="foot"><span class="brand"><svg viewBox="0 0 64 64" width="16" height="16" role="img" aria-label="SchoolSync" class="mark"><path d="M22 8H28A4 4 0 0 1 32 12V44A4 4 0 0 1 28 48H22A16 16 0 0 1 6 32V24A16 16 0 0 1 22 8Z" fill="#0E5A63"/><path d="M38 16H42A16 16 0 0 1 58 32V40A16 16 0 0 1 42 56H38A4 4 0 0 1 34 52V20A4 4 0 0 1 38 16Z" fill="#D1411B"/></svg><b>SchoolSync</b> · Product catalogue</span><span>For parents<em>37</em></span></footer>
+    </div>
+  </section>
+
+  <section class="sheet" id="p38" data-chapter="parent" data-title="Follow the day, and the fees">
+    <div class="page  phones">
+      <div class="split phonesplit"><div class="side">
+  <header class="head">
+    <div>
+      <p class="kicker" data-r>Parents · Mobile</p>
+      <h2 class="title" data-r style="--i:1">Follow the day, <em>and the fees</em></h2>
+    </div>
+    <p class="lede" data-r style="--i:2">Parents get the child selector, attendance, homework and fees on one Home screen, with the invoice details one tap away.</p>
+  </header><ul class="points"><li data-r style="--i:2"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>A selector for each linked child</span></li><li data-r style="--i:3"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Fee balance and next due date on Home</span></li><li data-r style="--i:4"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/></svg><span>Online payment appears when the school turns it on</span></li></ul></div><div class="phones">
+  <figure class="shot phone" data-r="phone" style="--i:2">
+    <div class="device"><img src="assets/mobile/07a-parent-home-top.png" alt="Home" decoding="async"></div>
+    <figcaption><b>Home</b><span>Child selector and the day’s timetable.</span></figcaption>
+  </figure>
+  <figure class="shot phone" data-r="phone" style="--i:3">
+    <div class="device"><img src="assets/mobile/07-parent-home.png" alt="Attendance, homework, fees" decoding="async"></div>
+    <figcaption><b>Attendance, homework, fees</b><span>Scroll for attendance, homework due, fees due and exams.</span></figcaption>
+  </figure>
+  <figure class="shot phone" data-r="phone" style="--i:4">
+    <div class="device"><img src="assets/mobile/08-parent-fees.png" alt="Fees" decoding="async"></div>
+    <figcaption><b>Fees</b><span>Due now, with the invoices for each child.</span></figcaption>
+  </figure>
+  <figure class="shot phone" data-r="phone" style="--i:5">
+    <div class="device"><img src="assets/mobile/08b-parent-invoice.png" alt="Invoice" decoding="async"></div>
+    <figcaption><b>Invoice</b><span>Items, total, paid and balance.</span></figcaption>
+  </figure></div></div>
+      <footer class="foot"><span class="brand"><svg viewBox="0 0 64 64" width="16" height="16" role="img" aria-label="SchoolSync" class="mark"><path d="M22 8H28A4 4 0 0 1 32 12V44A4 4 0 0 1 28 48H22A16 16 0 0 1 6 32V24A16 16 0 0 1 22 8Z" fill="#0E5A63"/><path d="M38 16H42A16 16 0 0 1 58 32V40A16 16 0 0 1 42 56H38A4 4 0 0 1 34 52V20A4 4 0 0 1 38 16Z" fill="#D1411B"/></svg><b>SchoolSync</b> · Product catalogue</span><span>For parents<em>38</em></span></footer>
+    </div>
+  </section>
+
+  <section class="sheet" id="p39" data-chapter="security" data-title="Security">
+    <div class="page  raw">
+      
+      
+  <header class="head wide">
+    <div>
+      <p class="kicker" data-r>Security &amp; privacy</p>
+      <h2 class="title" data-r style="--i:1">Built to keep a school’s <em>data private</em></h2>
+    </div>
+    <p class="lede" data-r style="--i:2">Each school’s data lives in its own database, and every request is checked for who is asking and which school they belong to.</p>
+  </header>
+      <div class="cards">
+        <div class="card" data-r style="--i:2"><div class="ic"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="5.5" rx="7.5" ry="3"/><path d="M4.5 5.5v13c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3v-13"/><path d="M4.5 12c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3"/></svg></div><h3>A database per school</h3><p>No shared tables of school data and no filter to forget. A sign-in from one school cannot open another.</p></div>
+        <div class="card" data-r style="--i:3"><div class="ic"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="15" r="4"/><path d="m11 12 8.5-8.5"/><path d="m16 7 2.5 2.5"/></svg></div><h3>Strong sign-in</h3><p>Passwords are hashed with Argon2id. Access is short-lived, refresh tokens rotate, and repeated failures lock the account.</p></div>
+        <div class="card" data-r style="--i:4"><div class="ic"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 4.5 6v6c0 4.6 3.1 7.6 7.5 9 4.4-1.4 7.5-4.4 7.5-9V6z"/><path d="m9 12 2.2 2.2L15.2 10"/></svg></div><h3>Role, scope and action</h3><p>Every record is checked against what the person’s role may do. Records out of scope are answered as not found.</p></div>
+        <div class="card" data-r style="--i:5"><div class="ic"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.4"/><path d="M2.8 20c0-3.5 2.8-5.8 6.2-5.8s6.2 2.3 6.2 5.8"/><circle cx="17" cy="9" r="2.4"/><path d="M17 14.2c2.7 0 4.2 1.8 4.2 4.3"/></svg></div><h3>Verified family links</h3><p>A parent sees a child only after the school has verified the link.</p></div>
+        <div class="card" data-r style="--i:6"><div class="ic"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 12h6M9 16h6"/></svg></div><h3>Audit trail</h3><p>Who changed what, and when, with secrets redacted. Records are archived rather than deleted.</p></div>
+        <div class="card" data-r style="--i:7"><div class="ic"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16v-5a6 6 0 0 1 12 0v5l1.8 2H4.2z"/><path d="M10 21h4"/></svg></div><h3>Private notifications</h3><p>Push messages never carry fees, marks or leave details, and recipients are resolved on the server.</p></div>
+        <div class="card" data-r style="--i:8"><div class="ic"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/></svg></div><h3>Safe on the phone</h3><p>HTTPS only, sign-in tokens in the device’s secure storage, a biometric app lock and privacy screens on sensitive pages.</p></div>
+        <div class="card" data-r style="--i:9"><div class="ic"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></div><h3>Files and money</h3><p>Each file is checked before it is served, privately. Payments use idempotency keys and verified webhooks.</p></div>
+      </div>
+      <p class="road" data-r style="--i:9"><b>On the roadmap</b><span>Two-factor sign-in for staff · app-integrity checks on the phone · object storage for files · an independent penetration test before go-live</span></p>
+      <footer class="foot"><span class="brand"><svg viewBox="0 0 64 64" width="16" height="16" role="img" aria-label="SchoolSync" class="mark"><path d="M22 8H28A4 4 0 0 1 32 12V44A4 4 0 0 1 28 48H22A16 16 0 0 1 6 32V24A16 16 0 0 1 22 8Z" fill="#0E5A63"/><path d="M38 16H42A16 16 0 0 1 58 32V40A16 16 0 0 1 42 56H38A4 4 0 0 1 34 52V20A4 4 0 0 1 38 16Z" fill="#D1411B"/></svg><b>SchoolSync</b> · Product catalogue</span><span>Security &amp; privacy<em>39</em></span></footer>
+    </div>
+  </section>
+
+  <section class="sheet" id="p40" data-chapter="pricing" data-title="Pricing">
+    <div class="page  raw">
+      
+      
+  <header class="head wide">
+    <div>
+      <p class="kicker" data-r>Pricing &amp; licence</p>
+      <h2 class="title" data-r style="--i:1">Per student, <em>per academic year</em></h2>
+    </div>
+    <p class="lede" data-r style="--i:2">One simple unit. A school pays for the students enrolled in an academic year. Staff, parents and administrator accounts are free and unlimited.</p>
+  </header>
+      <div class="price-grid">
+        <div>
+          <div class="cards c2" style="margin-top:0">
+            <div class="card" data-r style="--i:2"><div class="ic"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.4"/><path d="M2.8 20c0-3.5 2.8-5.8 6.2-5.8s6.2 2.3 6.2 5.8"/><circle cx="17" cy="9" r="2.4"/><path d="M17 14.2c2.7 0 4.2 1.8 4.2 4.3"/></svg></div><h3>Only students are counted</h3><p>Teachers, parents and office accounts never use a seat.</p></div>
+            <div class="card" data-r style="--i:3"><div class="ic"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div><h3>Counted once a year</h3><p>A student is billable once per academic year, whatever happens to their section or parents. Promotion creates next year’s seat.</p></div>
+            <div class="card" data-r style="--i:4"><div class="ic"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/></svg></div><h3>Seats that can grow</h3><p>A school commits to a number of seats. At the limit its terms either block new admissions or bill the extra students at the end.</p></div>
+            <div class="card" data-r style="--i:5"><div class="ic"><svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></div><h3>Never locked out</h3><p>When a year ends there is a grace period of full access (30 days by default), then the school becomes read-only. Renewing restores editing at once.</p></div>
+          </div>
+          <div class="life" data-r style="--i:6">
+            <div class="st"><span class="pill p-ok">Trial · Active</span><b>Full access</b><small>Inside the subscription year</small></div>
+            <svg class="ar" viewBox="0 0 34 14"><line x1="2" y1="7" x2="32" y2="7"/></svg>
+            <div class="st"><span class="pill p-grace">Grace</span><b>Full access</b><small>With renewal warnings</small></div>
+            <svg class="ar" viewBox="0 0 34 14"><line x1="2" y1="7" x2="32" y2="7"/></svg>
+            <div class="st"><span class="pill p-ro">Read-only</span><b>Everything readable</b><small>Changes pause until renewal</small></div>
+          </div>
+          <p class="lede" style="margin-top:14px;font-size:12.5px;--i:7" data-r>The price per student and the number of seats are agreed with each school. Usage is counted automatically through the year.</p>
+        </div>
+        <div>
+  <figure class="shot web" data-r style="--i:3">
+    <div class="frame"><div class="bar"><i></i><i></i><i></i></div><img src="assets/web/settings-license.jpg" alt="What the administrator sees" decoding="async"></div>
+    <figcaption><b>What the administrator sees</b><span>Students on the roll, seats licensed and remaining, time left, and the school’s terms.</span></figcaption>
+  </figure></div>
+      </div>
+      <footer class="foot"><span class="brand"><svg viewBox="0 0 64 64" width="16" height="16" role="img" aria-label="SchoolSync" class="mark"><path d="M22 8H28A4 4 0 0 1 32 12V44A4 4 0 0 1 28 48H22A16 16 0 0 1 6 32V24A16 16 0 0 1 22 8Z" fill="#0E5A63"/><path d="M38 16H42A16 16 0 0 1 58 32V40A16 16 0 0 1 42 56H38A4 4 0 0 1 34 52V20A4 4 0 0 1 38 16Z" fill="#D1411B"/></svg><b>SchoolSync</b> · Product catalogue</span><span>Pricing &amp; licence<em>40</em></span></footer>
+    </div>
+  </section>
+
+  <section class="sheet" id="p41" data-chapter="rollout" data-title="Going live">
+    <div class="page  raw">
+      
+      
+  <header class="head wide">
+    <div>
+      <p class="kicker" data-r>Going live</p>
+      <h2 class="title" data-r style="--i:1">From an empty site to <em>a school in use</em></h2>
+    </div>
+    <p class="lede" data-r style="--i:2">Four steps take a school from nothing to teachers, students and parents using it every day.</p>
+  </header>
+      <div class="tl">
+        <div class="st" data-r style="--i:2"><span class="n">1</span><h3>Create the school’s site</h3><p>One command creates the school’s own database, its default roles and its first administrator. Add the name, colour and logo.</p></div>
+        <div class="st" data-r style="--i:3"><span class="n">2</span><h3>Bring the people in</h3><p>Import students and staff from CSV. Parents are linked to their children and the school verifies each link.</p></div>
+        <div class="st" data-r style="--i:4"><span class="n">3</span><h3>Set up academics and fees</h3><p>Years, grades, subjects, timetable and fee structures, guided by the setup checklist on the management dashboard.</p></div>
+        <div class="st" data-r style="--i:5"><span class="n">4</span><h3>Switch on the apps</h3><p>Teachers, students and parents sign in on the web or in the mobile app, which asks for the school once.</p></div>
+      </div>
+      <div class="closing" data-r style="--i:6">
+        <div><h3>Every screen in this catalogue can be tried.</h3><p>A demo school with sample students, staff, attendance, exams and fees is included, so a pilot can start with real screens, not slides.</p></div>
+        <img src="assets/art/setup-complete.svg" alt="">
+      </div>
+      <footer class="foot"><span class="brand"><svg viewBox="0 0 64 64" width="16" height="16" role="img" aria-label="SchoolSync" class="mark"><path d="M22 8H28A4 4 0 0 1 32 12V44A4 4 0 0 1 28 48H22A16 16 0 0 1 6 32V24A16 16 0 0 1 22 8Z" fill="#0E5A63"/><path d="M38 16H42A16 16 0 0 1 58 32V40A16 16 0 0 1 42 56H38A4 4 0 0 1 34 52V20A4 4 0 0 1 38 16Z" fill="#D1411B"/></svg><b>SchoolSync</b> · Product catalogue</span><span>Going live<em>41</em></span></footer>
+    </div>
+  </section>
+</main>
+<div class="lightbox" id="lightbox" hidden role="dialog" aria-modal="true" aria-label="Screen preview"><button type="button" class="lb-close" aria-label="Close">×</button><img alt=""></div>
+<script>
+(function(){
+  var root = document.documentElement;
+  root.classList.add('js');
+  function fit(){ var s = Math.min(1.3, Math.max(0.28, (root.clientWidth - 32) / 1122)); root.style.setProperty('--s', s.toFixed(4)); }
+  fit(); addEventListener('resize', fit);
+
+  function countUp(scope){
+    scope.querySelectorAll('[data-count]:not(.done)').forEach(function(el){
+      el.classList.add('done');
+      var to = +el.dataset.count, t0 = performance.now(), dur = 1100; el.firstChild.nodeValue = 0;
+      (function step(t){ var k = Math.min(1, (t - t0) / dur); el.firstChild.nodeValue = Math.round(to * (1 - Math.pow(1 - k, 3))); if (k < 1) requestAnimationFrame(step); })(t0);
+    });
+  }
+  var sheets = [].slice.call(document.querySelectorAll('.sheet'));
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function(es){ es.forEach(function(e){ if (e.isIntersecting) { e.target.classList.add('in'); countUp(e.target); } }); }, { threshold: 0.16 });
+    sheets.forEach(function(s){ io.observe(s); });
+  } else { sheets.forEach(function(s){ s.classList.add('in'); }); }
+
+  var bar = document.getElementById('progress');
+  function prog(){ var h = root.scrollHeight - root.clientHeight; bar.style.transform = 'scaleX(' + (h > 0 ? Math.min(1, scrollY / h) : 0) + ')'; }
+  addEventListener('scroll', prog, { passive: true }); prog();
+
+  var jump = document.getElementById('jump');
+  jump.addEventListener('change', function(){ if (jump.value) { location.hash = jump.value; jump.selectedIndex = 0; } });
+
+  var lb = document.getElementById('lightbox'), lbImg = lb.querySelector('img');
+  document.addEventListener('click', function(e){
+    var img = e.target.closest && e.target.closest('.shot img');
+    if (img) { lbImg.src = img.currentSrc || img.src; lbImg.alt = img.alt; lb.hidden = false; return; }
+    if (!lb.hidden && e.target.closest('.lightbox')) lb.hidden = true;
+  });
+  addEventListener('keydown', function(e){
+    if (e.key === 'Escape') { lb.hidden = true; return; }
+    if (!lb.hidden || /input|select|textarea/i.test(e.target.tagName)) return;
+    var i = sheets.findIndex(function(s){ var r = s.getBoundingClientRect(); return r.bottom > innerHeight * 0.4; });
+    if (e.key === 'ArrowRight' || e.key === 'PageDown') { e.preventDefault(); (sheets[Math.min(sheets.length - 1, i + 1)] || sheets[0]).scrollIntoView(); }
+    if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); (sheets[Math.max(0, i - 1)] || sheets[0]).scrollIntoView(); }
+  });
+})();
+</script>
+</body>
+</html>

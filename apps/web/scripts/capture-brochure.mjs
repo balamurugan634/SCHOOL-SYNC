@@ -7,8 +7,8 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 const BASE = process.env.BASE_URL ?? 'http://demo.localhost:3000';
 const OUT = process.env.OUT_DIR ?? '/home/bala/SCHOOL-SYNC/brochure/assets/web';
 const only = (process.argv.find((a) => a.startsWith('--only=')) ?? '').split('=')[1]?.split(',').filter(Boolean);
-const W = 1440;
-const H = 900;
+const W = 1280;
+const H = 960;
 mkdirSync(OUT, { recursive: true });
 
 const LOGINS = { admin: 'admin@greenvalley.edu', principal: 'principal', accounts: 'accounts', office: 'office', teacher: 't001', student: 'gv20260001', parent: '9000000001' };
@@ -91,7 +91,7 @@ async function sessionFor(role, keepTour) {
   if (sessions.has(key)) return sessions.get(key);
   const ctx = await browser.createBrowserContext();
   const page = await ctx.newPage();
-  await page.setViewport({ width: W, height: H, deviceScaleFactor: 1.5 });
+  await page.setViewport({ width: W, height: H, deviceScaleFactor: 1.75 });
   if (role) {
     await page.goto(`${BASE}/login`, { waitUntil: 'networkidle2', timeout: 90000 });
     await page.type('#identifier', LOGINS[role]);
@@ -115,6 +115,7 @@ async function settle(page) {
 }
 
 async function setTheme(page, dark) {
+  if (page.url().startsWith('about:')) return; // nothing to set before the first navigation
   await page.evaluate((dark) => {
     localStorage.setItem('theme', dark ? 'dark' : 'light');
     document.documentElement.classList.toggle('dark', dark);
@@ -152,7 +153,7 @@ for (const shot of SHOTS) {
       await sleep(900);
     }
     await sleep(shot.keepTour ? 1200 : 200);
-    await page.screenshot({ path: `${OUT}/${shot.name}.jpg`, type: 'jpeg', quality: 90 });
+    await page.screenshot({ path: `${OUT}/${shot.name}.jpg`, type: 'jpeg', quality: 86 });
     manifest.push({ name: shot.name, title: shot.title, role: shot.role ?? 'public', url });
     console.log(`✓ ${shot.name}`);
   } catch (e) {

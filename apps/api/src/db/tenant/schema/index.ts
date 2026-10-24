@@ -7,3 +7,4 @@ export * from './exams';
 export * from './fees';
 export * from './communication';
 export * from './operations';
+export * from './email';

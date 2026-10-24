@@ -13,3 +13,5 @@ export * from './files';
 export * from './communication';
 export * from './operations';
 export * from './dashboard';
+export * from './email';
+export * from './platform';

@@ -51,6 +51,13 @@ const schema = z.object({
   /** absolute session lifetime regardless of activity */
   SESSION_MAX_DAYS: z.coerce.number().int().default(90),
   PLATFORM_API_KEY: z.string().min(24).optional(),
+  /** Operator console bootstrap: when no operator exists yet and both are set, the first one is created at startup (must change the password at first sign-in). */
+  PLATFORM_ADMIN_EMAIL: z.string().optional(),
+  PLATFORM_ADMIN_PASSWORD: z.string().optional(),
+  /** operator sign-in attempts per minute per client address */
+  PLATFORM_LOGIN_RATE_LIMIT_MAX: z.coerce.number().int().min(1).default(10),
+  /** demo data in the console's create-school wizard: development / test only (never offered in production); `false` hides it everywhere */
+  PLATFORM_ALLOW_DEMO_DATA: bool,
 
   CORS_ORIGINS: z.string().default('http://localhost:3000'),
   TRUST_PROXY: bool.default(false),
@@ -68,6 +75,10 @@ const schema = z.object({
   // Mail (password reset, receipts). Absent → emails are logged.
   SMTP_URL: z.string().optional(),
   MAIL_FROM: z.string().default('SchoolSync <no-reply@schoolsync.local>'),
+  /** DEV/TEST ONLY: let a school's own SMTP host resolve to loopback/private ranges and use any port (a local stub server). Refused in production. */
+  ALLOW_PRIVATE_SMTP: bool.default(false),
+  /** pause between two queued emails of one school, in ms (the queue sends strictly one message at a time) */
+  EMAIL_SEND_INTERVAL_MS: z.coerce.number().int().min(0).max(60_000).default(300),
 
   STORAGE_DRIVER: z.enum(['local']).default('local'),
   STORAGE_DIR: z.string().default('./storage'),
@@ -91,6 +102,7 @@ function load(): Config {
     if (/change-?me|dev-?secret/i.test(cfg.JWT_SECRET) || /change-?me|dev-?secret/i.test(cfg.APP_ENCRYPTION_KEY)) {
       throw new Error('Refusing to start in production with placeholder secrets');
     }
+    if (cfg.ALLOW_PRIVATE_SMTP) throw new Error('Refusing to start in production with ALLOW_PRIVATE_SMTP=true (it disables the SSRF guard for school SMTP hosts)');
   }
   return cfg;
 }

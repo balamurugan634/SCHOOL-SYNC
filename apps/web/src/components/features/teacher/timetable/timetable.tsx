@@ -189,7 +189,7 @@ function Cell({ e }: { e: TimetableEntry }) {
         </Badge>
       )}
       {covered && <p className="t-caption text-ink-2">Covered by {e.substitution?.substituteTeacherName ?? e.teacherName ?? 'a colleague'}</p>}
-      {e.state === 'current' && <Badge variant="primary">Now</Badge>}
+      {e.state === 'current' && <Badge variant="accent">Now</Badge>}
     </div>
   );
 }

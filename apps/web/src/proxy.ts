@@ -6,6 +6,8 @@ import { isSameOrigin, requestHost, requestOrigin } from '@/lib/server/csrf';
 import { env } from '@/lib/env';
 import { refreshTokens } from '@/lib/server/refresh';
 import { classifyHost } from '@/lib/server/site';
+import { isPlatformPath } from '@/lib/platform/host';
+import { platformProxy } from '@/lib/platform/proxy';
 
 /**
  * Next 16 `proxy` (formerly middleware). Runs before every page / route handler and does four jobs:
@@ -32,6 +34,9 @@ export async function proxy(req: NextRequest) {
   if (isApi && !isSameOrigin(req.method, req.headers)) {
     return NextResponse.json({ type: 'about:blank', title: 'Forbidden', status: 403, code: 'CSRF_REJECTED', detail: 'Cross-site request rejected' }, { status: 403, headers: { 'content-type': 'application/problem+json' } });
   }
+
+  // the operator console (/platform, /api/platform) is tenant-free: its own session, never a school's
+  if (isPlatformPath(pathname)) return platformProxy(req);
 
   let at = req.cookies.get(cookieName('at'))?.value;
   const rt = req.cookies.get(cookieName('rt'))?.value;

@@ -161,7 +161,57 @@ export const billingInvoices = pgTable(
     issuedAt: ts('issued_at').notNull().defaultNow(),
     dueOn: date('due_on', { mode: 'string' }),
     paidAt: ts('paid_at'),
+    /** bank reference / cheque no. recorded when an operator marks the invoice paid */
+    paymentReference: text('payment_reference'),
     notes: text('notes'),
   },
   (t) => [uniqueIndex('billing_invoices_number_uq').on(t.number), index('billing_invoices_tenant_idx').on(t.tenantId, t.issuedAt)],
+);
+
+/** Operator accounts of the platform console (us, never a school's users). Passwords are Argon2id hashes. */
+export const platformOperators = pgTable(
+  'platform_operators',
+  {
+    id: uuid('id')
+      .primaryKey()
+      .$defaultFn(() => uuidv7()),
+    /** stored lower-case */
+    email: text('email').notNull(),
+    displayName: text('display_name').notNull(),
+    passwordHash: text('password_hash').notNull(),
+    status: text('status', { enum: ['active', 'disabled'] })
+      .notNull()
+      .default('active'),
+    mustChangePassword: boolean('must_change_password').notNull().default(true),
+    failedAttempts: integer('failed_attempts').notNull().default(0),
+    lockedUntil: ts('locked_until'),
+    lastLoginAt: ts('last_login_at'),
+    passwordChangedAt: ts('password_changed_at'),
+    createdAt: ts('created_at').notNull().defaultNow(),
+    updatedAt: ts('updated_at').notNull().defaultNow().$onUpdate(() => new Date()),
+  },
+  (t) => [uniqueIndex('platform_operators_email_uq').on(t.email)],
+);
+
+/** One row per signed-in browser/device; the refresh token is stored only as a SHA-256 hash and rotates on every use. */
+export const platformSessions = pgTable(
+  'platform_sessions',
+  {
+    id: uuid('id')
+      .primaryKey()
+      .$defaultFn(() => uuidv7()),
+    operatorId: uuid('operator_id')
+      .notNull()
+      .references(() => platformOperators.id, { onDelete: 'cascade' }),
+    refreshHash: text('refresh_hash').notNull(),
+    prevRefreshHash: text('prev_refresh_hash'),
+    ip: text('ip'),
+    userAgent: text('user_agent'),
+    createdAt: ts('created_at').notNull().defaultNow(),
+    lastUsedAt: ts('last_used_at').notNull().defaultNow(),
+    expiresAt: ts('expires_at').notNull(),
+    revokedAt: ts('revoked_at'),
+    revokedReason: text('revoked_reason'),
+  },
+  (t) => [index('platform_sessions_operator_idx').on(t.operatorId, t.revokedAt)],
 );

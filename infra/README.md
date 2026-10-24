@@ -24,6 +24,7 @@ Schools are reachable at `https://greenvalley.<BASE_DOMAIN>`; the mobile app ask
 * **Upgrades:** build new images → `migrate` runs against all schools → roll the API replicas → web.
 * **Billing:** `node dist/cli/billing.js usage|snapshot|invoice` (per-student, per-academic-year; see `docs/PRICING-AND-BILLING.md`).
 * **Secrets:** `JWT_SECRET`, `APP_ENCRYPTION_KEY`, `PLATFORM_API_KEY`, `FIREBASE_SERVICE_ACCOUNT_JSON`, SMTP, payment-gateway keys live only in `infra/.env` / your secret manager — never in git. The API refuses to start in production with placeholder secrets.
-* **Platform API** (`/api/v1/platform/*`) is disabled unless `PLATFORM_API_KEY` is set; keep it off the public internet (VPN / separate listener).
+* **Platform API** (`/api/v1/platform/*`) accepts the `PLATFORM_API_KEY` automation key (disabled while it is unset) or an operator's bearer token; keep it off the public internet (VPN / separate listener; see the commented rule in `Caddyfile`).
+* **Operator console:** `https://<BASE_DOMAIN>/platform`. Set `PLATFORM_ADMIN_EMAIL` / `PLATFORM_ADMIN_PASSWORD` in `infra/.env` for the first start, sign in, choose a new password, then clear the password from the file. Locked out: `docker compose run --rm api node dist/cli/platform-operator.js --email … --password …`.
 
 > These files have **not been exercised** — Docker is not installed on the development machine. The API bundle (`pnpm --filter @school-sync/api build`) and its CLIs were run directly with `NODE_ENV=production` and work; the Next.js standalone build is verified to produce `apps/web/server.js`. Expect to tune PgBouncer pool sizes and Caddy's TLS setup on first deploy.

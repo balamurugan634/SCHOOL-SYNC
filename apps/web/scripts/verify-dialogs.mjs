@@ -137,8 +137,9 @@ try {
 
     // 3. a drawer: "new invoice"
     await page.goto(`${BASE}/admin/finance/invoices`, { waitUntil: 'networkidle2', timeout: 90000 });
-    await page.waitForSelector('tbody tr', { timeout: 60000 });
-    await page.evaluate(() => document.querySelector('tbody tr')?.click());
+    // desktop renders table rows, phones render cards (only the visible layout is mounted)
+    await page.waitForSelector('tbody tr, ul.divide-y > li', { timeout: 60000 });
+    await page.evaluate(() => (document.querySelector('tbody tr') ?? document.querySelector('ul.divide-y > li [role=button]'))?.click());
     const drawer = await watchOpen(page, '[role=dialog]', 800);
     const dEnd = drawer.at(-1);
     const rightEdge = drawer.length ? Math.min(...drawer.map((s) => s.right)) : NaN;

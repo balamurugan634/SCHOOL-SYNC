@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { Inter, Manrope } from 'next/font/google';
 import { Providers } from '@/components/providers';
 import { brandCss } from '@/lib/color';
@@ -11,7 +11,16 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'sw
 // display face: page titles, hero and big figures (variable weight)
 const manrope = Manrope({ subsets: ['latin'], variable: '--font-manrope', display: 'swap' });
 
+/** The operator console (/platform) is not a school: it never resolves one (set by proxy.ts). */
+const isConsolePath = async () => {
+  const p = (await headers()).get('x-url-path') ?? '';
+  return p === '/platform' || p.startsWith('/platform/');
+};
+
 export async function generateMetadata(): Promise<Metadata> {
+  if (await isConsolePath()) {
+    return { title: { default: 'SchoolSync operator console', template: '%s · Operator console' }, description: 'Onboarding and billing for SchoolSync schools.', applicationName: 'SchoolSync', icons: { icon: [{ url: '/favicon.svg', type: 'image/svg+xml' }, { url: '/favicon-32.png', sizes: '32x32', type: 'image/png' }], apple: '/apple-touch-icon.png' }, robots: { index: false, follow: false } };
+  }
   const s = await getSiteState();
   const name = s.status === 'ok' ? s.info.name : 'SchoolSync';
   return {
@@ -33,7 +42,7 @@ export const viewport: Viewport = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const s = await getSiteState();
+  const s = (await isConsolePath()) ? ({ status: 'none' } as const) : await getSiteState();
   const site = s.status === 'ok' ? s.info : null;
   // dev only (ENABLE_DEV_PREVIEW): `ss_dev_brand` cookie previews another school colour, e.g. to check the normalisation
   const override = env.devPreview ? (await cookies()).get('ss_dev_brand')?.value : undefined;

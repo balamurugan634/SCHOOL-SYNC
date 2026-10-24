@@ -21,7 +21,7 @@
                        └─────────────────────┘
 ```
 
-* **Control DB** `schoolsync_control`: `tenants` (code, name, db name, status, branding, plan), `tenant_domains`, `platform_admins`.
+* **Control DB** `schoolsync_control`: `tenants` (code, name, db name, status, branding, plan), `tenant_domains`, `subscriptions`, `usage_snapshots`, `billing_invoices`, `platform_audit`, and the operator console's `platform_operators` + `platform_sessions` (platform operators are separate from every school's users). Operators run the web console at `/platform` (docs/SECURITY.md); the same `/api/v1/platform/*` API also accepts the `X-Platform-Key` automation key.
 * **Tenant DB** `ss_<code>`: every school table. No `tenant_id` columns — isolation is physical. A bug can't leak across schools.
 * **Resolution order** per request: `X-Tenant` header (site code; used by the mobile app and dev) → `Host` header (custom domain from `tenant_domains`, or `<code>.<BASE_DOMAIN>`).
 * **Pools**: LRU of `pg.Pool` per tenant (bounded), idle eviction. Put PgBouncer (transaction mode) between API and Postgres in production.
@@ -54,6 +54,7 @@ The user enters the school's **site** (URL like `https://greenvalley.schoolsync.
 * Keyset pagination on large lists; list endpoints cap page size.
 * API is stateless → scale horizontally. Redis (optional in dev, recommended in prod) backs rate limiting and the notification queue.
 * Push notifications: persisted in `notifications` first (inbox), then fanned out to FCM in batches by a worker; failures retry, dead tokens are pruned.
+* Outgoing email: nothing talks SMTP inside a request. `enqueueMail(tenant, …)` (core/email) writes a row to the school's `email_queue`; a worker (`email.send`, the scheduler's 10-second tick in `core/jobs.ts`, plus an immediate non-blocking kick for priority-1 mail such as password resets) sends each school's queue **one message at a time** (priority, then age) through the school's default `email_accounts` row, or the platform sender (`SMTP_URL` / `MAIL_FROM`) when the school has none. Retries after 1, 5, 30 minutes; stuck `sending` rows recovered after 10 minutes; per-account daily limit; at most 50 messages per school per run; retention job 30 / 90 days. Schools are visited round-robin, a few at a time. Past a few thousand schools replace the per-tick "anything due?" probe with a shared signal (Redis).
 
 ## Mobile security (store-ready)
 
