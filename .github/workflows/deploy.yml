@@ -1,0 +1,140 @@
+name: Deploy to Hetzner
+
+# Every push to main: run the checks, build the two images, push them to GitHub Container Registry, then deploy to the
+# server over SSH (migrations first, health check, automatic rollback). Setup: infra/DEPLOY-HETZNER.md
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# One deploy at a time. A newer push waits for the running deploy and replaces any older waiting one.
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: Checks
+    uses: ./.github/workflows/ci.yml
+
+  images:
+    name: Build and push images
+    needs: checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      tag: ${{ steps.meta.outputs.tag }}
+      prefix: ${{ steps.meta.outputs.prefix }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Settings
+        id: meta
+        env:
+          BASE_DOMAIN: ${{ vars.BASE_DOMAIN }}
+          OWNER: ${{ github.repository_owner }}
+        run: |
+          if [ -z "$BASE_DOMAIN" ]; then echo "::error::Set the repository variable BASE_DOMAIN (Settings > Secrets and variables > Actions > Variables), e.g. schoolsync.example.com"; exit 1; fi
+          echo "prefix=ghcr.io/$(echo "$OWNER" | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
+          echo "tag=${GITHUB_SHA::12}" >> "$GITHUB_OUTPUT"
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: API image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: infra/api.Dockerfile
+          platforms: ${{ vars.DEPLOY_PLATFORM || 'linux/amd64' }}
+          push: true
+          tags: |
+            ${{ steps.meta.outputs.prefix }}/schoolsync-api:${{ steps.meta.outputs.tag }}
+            ${{ steps.meta.outputs.prefix }}/schoolsync-api:latest
+          labels: org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+          cache-from: type=gha,scope=api
+          cache-to: type=gha,scope=api,mode=max
+      - name: Web image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: infra/web.Dockerfile
+          platforms: ${{ vars.DEPLOY_PLATFORM || 'linux/amd64' }}
+          push: true
+          build-args: NEXT_PUBLIC_BASE_DOMAIN=${{ vars.BASE_DOMAIN }}
+          tags: |
+            ${{ steps.meta.outputs.prefix }}/schoolsync-web:${{ steps.meta.outputs.tag }}
+            ${{ steps.meta.outputs.prefix }}/schoolsync-web:latest
+          labels: org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+          cache-from: type=gha,scope=web
+          cache-to: type=gha,scope=web,mode=max
+
+  deploy:
+    name: Deploy
+    needs: images
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: production        # add required reviewers on this environment if you want a manual approval step
+    permissions:
+      contents: read
+      packages: read
+    env:
+      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+      DEPLOY_USER: ${{ secrets.DEPLOY_USER || 'deploy' }}
+      DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+      BASE_DOMAIN: ${{ vars.BASE_DOMAIN }}
+      # the address the live check opens; on a SHARED server the base domain belongs to the other app, so set HEALTHCHECK_HOST (e.g. admin.<domain>)
+      LIVE_HOST: ${{ vars.HEALTHCHECK_HOST || vars.BASE_DOMAIN }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: SSH access
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+        run: |
+          for v in DEPLOY_HOST DEPLOY_SSH_KEY DEPLOY_KNOWN_HOSTS; do
+            if [ -z "${!v}" ]; then echo "::error::Missing GitHub secret $v (see infra/DEPLOY-HETZNER.md)"; exit 1; fi
+          done
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          printf 'Host target\n  HostName %s\n  User %s\n  IdentityFile ~/.ssh/deploy_key\n  IdentitiesOnly yes\n  StrictHostKeyChecking yes\n  BatchMode yes\n  ConnectTimeout 20\n  ServerAliveInterval 15\n' "$DEPLOY_HOST" "$DEPLOY_USER" > ~/.ssh/config
+      - name: Upload release files
+        run: |
+          scp -q infra/docker-compose.prod.yml target:/opt/schoolsync/docker-compose.yml
+          scp -q infra/docker-compose.shared.yml infra/Caddyfile infra/scripts/deploy-remote.sh infra/scripts/backup-docker.sh target:/opt/schoolsync/
+      - name: Deploy
+        env:
+          TAG: ${{ needs.images.outputs.tag }}
+          PREFIX: ${{ needs.images.outputs.prefix }}
+          ACTOR: ${{ github.actor }}
+          REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # the registry token goes over stdin: it never appears in a command line or in the logs
+        run: ssh target "bash /opt/schoolsync/deploy-remote.sh '$TAG' '$PREFIX' '$ACTOR'" <<< "$REGISTRY_TOKEN"
+      - name: Check the live site
+        run: |
+          for i in $(seq 1 30); do
+            if curl -fsS --max-time 10 "https://$LIVE_HOST/api/v1/healthz" > /dev/null; then echo "live: https://$LIVE_HOST"; exit 0; fi
+            echo "waiting for https://$LIVE_HOST ($i/30)"; sleep 10
+          done
+          echo "::error::https://$LIVE_HOST did not answer. DNS and the first certificate can take a few minutes."
+          exit 1
+      - name: Summary
+        if: always()
+        env:
+          TAG: ${{ needs.images.outputs.tag }}
+        run: |
+          {
+            echo "### Deploy ${{ job.status }}"
+            echo ""
+            echo "- Version: \`$TAG\` (commit ${{ github.sha }})"
+            echo "- Site: https://$LIVE_HOST"
+            echo "- Operator console: https://$LIVE_HOST/platform"
+          } >> "$GITHUB_STEP_SUMMARY"

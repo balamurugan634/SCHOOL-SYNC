@@ -1,6 +1,6 @@
 # API index (generated)
 
-431 operations, API version 1.0.0. Base: `/api/v1`, header `X-Tenant: <site code>`, `Authorization: Bearer <token>`. Full schemas: `docs/openapi.json`; live docs: `/docs`.
+434 operations, API version 1.0.0. Base: `/api/v1`, header `X-Tenant: <site code>`, `Authorization: Bearer <token>`. Full schemas: `docs/openapi.json`; live docs: `/docs`.
 Regenerate with `pnpm --filter @school-sync/api openapi`.
 
 ## Academics
@@ -416,6 +416,8 @@ Regenerate with `pnpm --filter @school-sync/api openapi`.
 | `POST` | `/api/v1/platform/operators/{id}/disable` | Disable an operator and sign them out |
 | `POST` | `/api/v1/platform/operators/{id}/enable` | Enable an operator again |
 | `POST` | `/api/v1/platform/operators/{id}/reset-password` | Reset an operator’s password to a new temporary one (shown once) |
+| `POST` | `/api/v1/platform/tenants/migrate-all` | Update every school’s database to the newest structure (what pnpm site:migrate did) |
+| `POST` | `/api/v1/platform/tenants/{code}/migrate` | Update one school’s database to the newest structure |
 | `GET` | `/api/v1/platform/tenants/check-code` | Is this site code valid and free? |
 | `GET` | `/api/v1/platform/tenants/{code}` | One school: profile, features, domains, subscription state, seats, subscription history |
 | `PATCH` | `/api/v1/platform/tenants/{code}` | Update a school’s name, brand colour, time zone and feature switches |
@@ -491,6 +493,7 @@ Regenerate with `pnpm --filter @school-sync/api openapi`.
 | | Path | Summary |
 |---|---|---|
 | `GET` | `/api/v1/site/info` | Public school info used by the app during first-run setup |
+| `GET` | `/api/v1/site/tls-allowed` | Reverse-proxy check: may a certificate be issued for this host? (internal callers only) |
 | `GET` | `/api/v1/healthz` |  |
 | `GET` | `/api/v1/site/logo` | The school’s logo image (public, cached 5 minutes) |
 

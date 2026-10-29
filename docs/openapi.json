@@ -152,6 +152,50 @@
         }
       }
     },
+    "/api/v1/site/tls-allowed": {
+      "get": {
+        "summary": "Reverse-proxy check: may a certificate be issued for this host? (internal callers only)",
+        "tags": [
+          "Site"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 253
+            },
+            "in": "query",
+            "name": "domain",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    }
+                  },
+                  "required": [
+                    "ok"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/healthz": {
       "get": {
         "tags": [
@@ -83006,6 +83050,29 @@
                               "overdueCount"
                             ],
                             "additionalProperties": false
+                          },
+                          "schema": {
+                            "type": "object",
+                            "properties": {
+                              "version": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              },
+                              "latest": {
+                                "type": "string"
+                              },
+                              "upToDate": {
+                                "type": "boolean"
+                              }
+                            },
+                            "required": [
+                              "version",
+                              "latest",
+                              "upToDate"
+                            ],
+                            "additionalProperties": false
                           }
                         },
                         "required": [
@@ -83021,7 +83088,8 @@
                           "license",
                           "seats",
                           "usage",
-                          "billing"
+                          "billing",
+                          "schema"
                         ],
                         "additionalProperties": false
                       }
@@ -83070,11 +83138,15 @@
                           "additionalProperties": {
                             "type": "number"
                           }
+                        },
+                        "updates": {
+                          "type": "number"
                         }
                       },
                       "required": [
                         "status",
-                        "license"
+                        "license",
+                        "updates"
                       ],
                       "additionalProperties": false
                     }
@@ -84810,6 +84882,154 @@
         }
       }
     },
+    "/api/v1/platform/tenants/migrate-all": {
+      "post": {
+        "summary": "Update every school’s database to the newest structure (what pnpm site:migrate did)",
+        "tags": [
+          "Platform"
+        ],
+        "security": [
+          {
+            "platformKey": []
+          },
+          {
+            "operatorToken": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "updated": {
+                      "type": "number"
+                    },
+                    "failed": {
+                      "type": "number"
+                    },
+                    "results": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "code": {
+                            "type": "string"
+                          },
+                          "ok": {
+                            "type": "boolean"
+                          },
+                          "error": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "code",
+                          "ok",
+                          "error"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "updated",
+                    "failed",
+                    "results"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/platform/tenants/{code}/migrate": {
+      "post": {
+        "summary": "Update one school’s database to the newest structure",
+        "tags": [
+          "Platform"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 60
+            },
+            "in": "path",
+            "name": "code",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "platformKey": []
+          },
+          {
+            "operatorToken": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "updated": {
+                      "type": "number"
+                    },
+                    "failed": {
+                      "type": "number"
+                    },
+                    "results": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "code": {
+                            "type": "string"
+                          },
+                          "ok": {
+                            "type": "boolean"
+                          },
+                          "error": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "code",
+                          "ok",
+                          "error"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "updated",
+                    "failed",
+                    "results"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/platform/tenants/check-code": {
       "get": {
         "summary": "Is this site code valid and free?",
@@ -85017,6 +85237,12 @@
                             "null"
                           ]
                         },
+                        "schemaLatest": {
+                          "type": "string"
+                        },
+                        "schemaUpToDate": {
+                          "type": "boolean"
+                        },
                         "createdAt": {
                           "type": "string",
                           "format": "date-time",
@@ -85041,6 +85267,8 @@
                         "branding",
                         "features",
                         "schemaVersion",
+                        "schemaLatest",
+                        "schemaUpToDate",
                         "createdAt",
                         "updatedAt"
                       ],
@@ -85588,6 +85816,12 @@
                             "null"
                           ]
                         },
+                        "schemaLatest": {
+                          "type": "string"
+                        },
+                        "schemaUpToDate": {
+                          "type": "boolean"
+                        },
                         "createdAt": {
                           "type": "string",
                           "format": "date-time",
@@ -85612,6 +85846,8 @@
                         "branding",
                         "features",
                         "schemaVersion",
+                        "schemaLatest",
+                        "schemaUpToDate",
                         "createdAt",
                         "updatedAt"
                       ],

@@ -6,6 +6,7 @@ vi.hoisted(() => {
   process.env.PLATFORM_ADMIN_EMAIL = 'Root@Console.Test';
   process.env.PLATFORM_ADMIN_PASSWORD = 'Bootstrap#Pass1';
   process.env.PLATFORM_ALLOW_DEMO_DATA = 'false';
+  process.env.RESERVED_SITE_CODES_EXTRA = 'lahab, Restoconnect';
 });
 
 // The real upgrade (baseline → latest migration) is covered in email-settings.test.ts. The test schema mode ("push") cannot re-sync a database
@@ -257,6 +258,11 @@ describe('schools', () => {
     // the temporary password is stored hashed only (the audit entry must not carry it either)
     const audit = await call('GET', `/audit?tenant=${s.code}&limit=50`, { token: root.token });
     expect(audit.raw).not.toContain(s.adminPassword);
+  });
+
+  it('keeps names that other apps on the domain use (RESERVED_SITE_CODES_EXTRA) from becoming schools', async () => {
+    for (const code of ['lahab', 'restoconnect']) expect((await call('GET', `/tenants/check-code?code=${code}`, { token: root.token })).body).toMatchObject({ available: false, reason: 'reserved' });
+    expect((await call('GET', '/tenants/check-code?code=greenvalley-x', { token: root.token })).body.available).toBe(true);
   });
 
   it('refuses invalid, reserved and taken codes, and demo data when the server forbids it', async () => {

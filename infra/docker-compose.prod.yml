@@ -1,0 +1,130 @@
+# SchoolSync production stack for ONE server (Hetzner). The images are built by GitHub Actions and only PULLED here:
+# nothing is built on the server. On the server this file lives at /opt/schoolsync/docker-compose.yml next to `.env`
+# (secrets, never in git). Deploys are done by infra/scripts/deploy-remote.sh (called from .github/workflows/deploy.yml).
+# Day-to-day commands on the server:  schoolsync ps | schoolsync logs -f api | schoolsync restart web
+# For real scale: managed Postgres + PgBouncer, several `api` replicas on several servers behind a load balancer.
+name: schoolsync
+
+x-logging: &logging
+  driver: json-file
+  options: { max-size: "20m", max-file: "5" }
+
+x-api: &api
+  image: ${REGISTRY:?set REGISTRY}/schoolsync-api:${IMAGE_TAG:?set IMAGE_TAG}
+  restart: unless-stopped
+  env_file: .env
+  logging: *logging
+  mem_limit: ${API_MEM:-768m}      # a runaway SchoolSync container can never take the whole server (other apps may share it)
+  volumes: [storage:/data/storage]
+  depends_on:
+    pgbouncer: { condition: service_started }
+    redis: { condition: service_started }
+  healthcheck: { test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4000/api/v1/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"], interval: 15s, timeout: 3s, retries: 5, start_period: 30s }
+
+services:
+  postgres:
+    image: postgres:17
+    restart: unless-stopped
+    logging: *logging
+    mem_limit: ${PG_MEM:-1g}
+    environment:
+      POSTGRES_USER: ${PG_USER:-postgres}
+      POSTGRES_PASSWORD: ${PG_PASSWORD:?set PG_PASSWORD}
+    volumes: [pgdata:/var/lib/postgresql/data]
+    command: ["postgres", "-c", "max_connections=300", "-c", "shared_buffers=${PG_SHARED_BUFFERS:-256MB}", "-c", "log_min_duration_statement=500"]
+    healthcheck: { test: ["CMD-SHELL", "pg_isready -U ${PG_USER:-postgres}"], interval: 5s, timeout: 3s, retries: 20 }
+
+  # Connection pooling between the API and Postgres: many schools x small pools would otherwise exhaust connections.
+  pgbouncer:
+    image: edoburu/pgbouncer:latest
+    restart: unless-stopped
+    logging: *logging
+    mem_limit: 128m
+    environment:
+      DB_HOST: postgres
+      DB_USER: ${PG_USER:-postgres}
+      DB_PASSWORD: ${PG_PASSWORD}
+      POOL_MODE: transaction
+      MAX_CLIENT_CONN: 2000
+      DEFAULT_POOL_SIZE: 40
+      AUTH_TYPE: scram-sha-256
+      # the API sets statement_timeout etc. as startup options
+      IGNORE_STARTUP_PARAMETERS: options,extra_float_digits
+    depends_on: { postgres: { condition: service_healthy } }
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    logging: *logging
+    mem_limit: ${REDIS_MEM:-192m}
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory-policy", "noeviction"]
+    volumes: [redisdata:/data]
+
+  api:
+    <<: *api
+    environment:
+      NODE_ENV: production
+      NODE_OPTIONS: --max-old-space-size=${API_HEAP_MB:-512}
+      PG_HOST: pgbouncer
+      PG_PORT: 5432
+      REDIS_URL: redis://redis:6379/0
+      RUN_WORKERS: "false"          # background jobs run in the dedicated `worker` service
+      TRUST_PROXY: "true"
+      STORAGE_DIR: /data/storage
+    deploy: { replicas: "${API_REPLICAS:-1}" }
+
+  # Push sweeper, usage metering, reminders, scheduled publishing, the email queue. Run exactly one (jobs are advisory-locked anyway).
+  worker:
+    <<: *api
+    environment:
+      NODE_ENV: production
+      NODE_OPTIONS: --max-old-space-size=${API_HEAP_MB:-512}
+      PG_HOST: pgbouncer
+      PG_PORT: 5432
+      REDIS_URL: redis://redis:6379/0
+      RUN_WORKERS: "true"
+      TRUST_PROXY: "true"
+      STORAGE_DIR: /data/storage
+    deploy: { replicas: 1 }
+
+  # One-shot, run by the deploy script BEFORE the new version takes traffic: control-database changes and every school's
+  # schema migrations. A failure here stops the deploy and the running version keeps serving.
+  migrate:
+    <<: *api
+    restart: "no"
+    command: ["node", "dist/cli/site-migrate.js"]
+    environment:
+      NODE_ENV: production
+      NODE_OPTIONS: --max-old-space-size=${API_HEAP_MB:-512}
+      PG_HOST: postgres            # migrations talk to Postgres directly (advisory locks need session mode)
+      PG_PORT: 5432
+      STORAGE_DIR: /data/storage
+    depends_on: { postgres: { condition: service_healthy } }
+    healthcheck: { disable: true }
+
+  web:
+    image: ${REGISTRY:?set REGISTRY}/schoolsync-web:${IMAGE_TAG:?set IMAGE_TAG}
+    restart: unless-stopped
+    env_file: .env
+    logging: *logging
+    mem_limit: ${WEB_MEM:-768m}
+    environment:
+      NODE_ENV: production
+      NODE_OPTIONS: --max-old-space-size=${WEB_HEAP_MB:-512}
+      API_URL: http://api:4000          # server-side only; the browser never talks to the API directly
+      BASE_DOMAIN: "${BASE_DOMAIN:?set BASE_DOMAIN}"
+      SITE_SELECT_MODE: redirect        # visitors without a school are sent to <code>.${BASE_DOMAIN}
+    depends_on: { api: { condition: service_healthy } }
+    healthcheck: { test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/').then(r=>process.exit(r.status<500?0:1)).catch(()=>process.exit(1))"], interval: 15s, timeout: 5s, retries: 5, start_period: 30s }
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    logging: *logging
+    mem_limit: 128m
+    ports: ["80:80", "443:443", "443:443/udp"]
+    volumes: [./Caddyfile:/etc/caddy/Caddyfile:ro, caddy_data:/data, caddy_config:/config]
+    environment: { BASE_DOMAIN: "${BASE_DOMAIN:?set BASE_DOMAIN}", ACME_EMAIL: "${ACME_EMAIL:?set ACME_EMAIL}" }
+    depends_on: [api, web]
+
+volumes: { pgdata: {}, redisdata: {}, storage: {}, caddy_data: {}, caddy_config: {} }

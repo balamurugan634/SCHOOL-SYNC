@@ -1,0 +1,23 @@
+# Overlay for a server that ALREADY has a reverse proxy in Docker which owns ports 80 and 443 (for example a Caddy container
+# serving other apps). SchoolSync's own Caddy is switched off; the existing proxy reaches SchoolSync over a shared Docker network:
+#     schoolsync-web:3000   the web app
+#     schoolsync-api:4000   the API
+# Nothing of SchoolSync is published on the host. Enabled by these two lines in /opt/schoolsync/.env (bootstrap-server.sh --shared
+# writes them):   COMPOSE_FILE=docker-compose.yml:docker-compose.shared.yml   and   EDGE_NETWORK=<the proxy's network>
+# What to add to the existing proxy: infra/caddy/existing-caddy.snippet
+services:
+  caddy:
+    profiles: ["standalone"]        # never started in shared mode
+  web:
+    networks:
+      default: {}
+      edge: { aliases: [schoolsync-web] }
+  api:
+    networks:
+      default: {}
+      edge: { aliases: [schoolsync-api] }
+
+networks:
+  edge:
+    external: true
+    name: ${EDGE_NETWORK:?set EDGE_NETWORK to the Docker network the existing proxy is on}

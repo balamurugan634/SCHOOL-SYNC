@@ -48,6 +48,7 @@ A web console for **us** (the platform operator, not for schools) replaces the C
 * **First operator.** Set `PLATFORM_ADMIN_EMAIL` and `PLATFORM_ADMIN_PASSWORD` (10+ characters, upper and lower case and a digit) in the API environment before the first start: when no operator exists yet, the API creates that one at startup. They must choose a new password at first sign-in; after that remove the password from the environment. Locked out, or no env access? `pnpm platform:operator --email you@company.com --password '<temporary>'` creates or resets an operator (same forced password change).
 * Operators sign in with email + password (Argon2id, lockout after 5 failures, rate-limited). Access tokens are short-lived (15 min) with their own signing key and audience, so a school token is useless on `/api/v1/platform/*` and an operator token is useless on a school route. Refresh tokens rotate and are stored hashed. The browser holds only HttpOnly cookies (`ss_pat` / `ss_prt`, separate from the school cookies).
 * The platform API accepts **either** an operator bearer token **or** the `X-Platform-Key` automation key (unchanged; `PLATFORM_API_KEY`). The audit log records which one acted: the operator's id, or `platform-api`.
+* **Database updates need no command.** When a release adds tables or columns, the Schools list shows an "Update available" chip per school and a banner with **Update all schools**; a school's **Settings → Database** panel has **Update now**. It does what `pnpm site:migrate` does (keeps all data, safe to repeat) and records who ran it in the audit log. API: `POST /platform/tenants/migrate-all` and `POST /platform/tenants/{code}/migrate`.
 * Demo data for a new school is offered only when the server is not in production (and `PLATFORM_ALLOW_DEMO_DATA` is not `false`).
 * Host rule: the console answers on the base host and on `admin.<base>` / `platform.<base>`; add more with `PLATFORM_CONSOLE_HOSTS` (web env, comma separated). Everything else answers 404.
 * In production keep `/api/v1/platform/*` off the public internet (the console reaches the API over the internal network): see the commented rule in `infra/Caddyfile`.
@@ -110,6 +111,8 @@ Run heavy commands through `scripts/dev/heavy.sh` on a small machine (see the me
 | Run the Docker stack once | `infra/` is written but was not run (no Docker on the dev machine) |
 
 ## Deploying
+
+**Hetzner + GitHub Actions (push to `main` deploys automatically):** [infra/DEPLOY-HETZNER.md](infra/DEPLOY-HETZNER.md).
 
 See [infra/](infra/) — `docker compose -f infra/docker-compose.yml --env-file infra/.env up -d --build`
 (Postgres + PgBouncer + Redis + API replicas + worker + web + Caddy with wildcard TLS). Details and first-school commands: [infra/README.md](infra/README.md). Docker is not installed on the dev machine, so the compose files are written but **not yet exercised**.

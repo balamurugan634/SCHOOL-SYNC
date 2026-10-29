@@ -1,5 +1,7 @@
 # Deploying SchoolSync
 
+**Hetzner with automatic deploys on every push to GitHub:** see [DEPLOY-HETZNER.md](DEPLOY-HETZNER.md) (`docker-compose.prod.yml`, `.github/workflows/deploy.yml`, `scripts/bootstrap-server.sh`). The rest of this file describes the stack in general and the build-on-the-server variant below.
+
 `docker compose -f infra/docker-compose.yml --env-file infra/.env up -d --build` (copy `infra/.env.example` to `infra/.env` first).
 
 | Service | Role |

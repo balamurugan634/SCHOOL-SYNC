@@ -38,6 +38,9 @@ const schema = z.object({
 
   // Tenant resolution: <code>.<BASE_DOMAIN> or a registered custom domain or `X-Tenant: <code>`
   BASE_DOMAIN: z.string().default('localhost'),
+  // Names no school may take, comma separated, on top of the built-in ones (www, api, admin, ...): hosts that OTHER apps on the same
+  // domain already use, e.g. "lahab,resto". A school with such a code could never be reached.
+  RESERVED_SITE_CODES_EXTRA: z.string().default(''),
   /** allow the X-Tenant header (mobile app + dev). Safe: tokens are tenant-bound. */
   ALLOW_TENANT_HEADER: bool.default(true),
   /** fallback school when nothing else resolves (single-school installs, local dev) */

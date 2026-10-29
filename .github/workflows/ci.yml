@@ -1,8 +1,24 @@
 name: CI
-on: [push, pull_request]
+
+# Runs on pull requests, on pushes to every branch except main, and is reused by the deploy workflow (which runs it on main).
+on:
+  pull_request:
+  push:
+    branches-ignore: [main]
+  workflow_call:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
 jobs:
-  web-api:
+  checks:
+    name: Typecheck, lint, tests, builds
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -10,6 +26,34 @@ jobs:
         with: { node-version: 24, cache: pnpm }
       - run: pnpm install --frozen-lockfile
       - run: pnpm typecheck
-      - run: pnpm --filter @school-sync/api test     # starts its own throw-away PostgreSQL
+      - run: pnpm --filter @school-sync/web exec eslint src --max-warnings=0
+      - run: pnpm --filter @school-sync/api test       # starts its own throw-away PostgreSQL
       - run: pnpm --filter @school-sync/api build
       - run: pnpm --filter @school-sync/web build
+      - name: Compose files are valid
+        run: |
+          cp infra/.env.example infra/.env      # the compose files read ./.env (git-ignored; placeholders are enough to validate)
+          docker compose -f infra/docker-compose.yml --env-file infra/.env config -q
+          REGISTRY=ghcr.io/example IMAGE_TAG=ci docker compose -f infra/docker-compose.prod.yml --env-file infra/.env config -q
+          REGISTRY=ghcr.io/example IMAGE_TAG=ci EDGE_NETWORK=proxy docker compose -f infra/docker-compose.prod.yml -f infra/docker-compose.shared.yml --env-file infra/.env config -q   # shared-server variant
+
+  # On pull requests only: make sure both images still build, so a broken Dockerfile is found before it blocks a deploy.
+  # (On main the deploy workflow builds and pushes them anyway.)
+  images:
+    name: Docker images build
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with: { context: ., file: infra/api.Dockerfile, push: false, cache-from: "type=gha,scope=api", cache-to: "type=gha,scope=api,mode=max" }
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: infra/web.Dockerfile
+          push: false
+          build-args: NEXT_PUBLIC_BASE_DOMAIN=${{ vars.BASE_DOMAIN || 'schoolsync.example.com' }}
+          cache-from: type=gha,scope=web
+          cache-to: type=gha,scope=web,mode=max

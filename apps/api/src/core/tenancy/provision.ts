@@ -19,7 +19,10 @@ import { upsertSubscription, type SubscriptionInput } from '../billing/invoicing
 import { academicYearSpan, seedTenantDefaults, syncSystemRoles } from './seed-defaults';
 
 export const SITE_CODE_RE = /^[a-z][a-z0-9-]{2,30}$/;
-export const RESERVED_SITE_CODES = new Set(['www', 'api', 'admin', 'app', 'platform', 'static', 'assets', 'mail', 'status', 'docs', 'localhost']);
+export const RESERVED_SITE_CODES = new Set([
+  'www', 'api', 'admin', 'app', 'platform', 'static', 'assets', 'mail', 'status', 'docs', 'localhost',
+  ...config.RESERVED_SITE_CODES_EXTRA.split(',').map((s) => s.trim().toLowerCase()).filter(Boolean),
+]);
 
 function migrationsDir(): string {
   const here = dirname(fileURLToPath(import.meta.url));
