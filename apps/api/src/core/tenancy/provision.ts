@@ -12,7 +12,7 @@ import * as schema from '../../db/tenant/schema';
 import { roles, staff, userRoles, users } from '../../db/tenant/schema';
 import { unseal } from '../crypto';
 import { generatePassword, hashPassword } from '../auth/password';
-import { closeControlDb, controlDb, databaseExists, ensureControlSchema, pgConfig, withAdminClient } from './control-db';
+import { adminPgConfig, closeControlDb, controlDb, databaseExists, ensureControlSchema, withAdminClient } from './control-db';
 import { closeAllTenantPools, directClient } from './pools';
 import { invalidateTenant } from './registry';
 import { upsertSubscription, type SubscriptionInput } from '../billing/invoicing';
@@ -117,7 +117,7 @@ export async function createTenant(input: CreateTenantInput): Promise<CreateTena
     }
     await migrateTenantDatabase(tenant.dbName);
 
-    const pool = new pg.Pool({ ...pgConfig(tenant.dbName), max: 2 });
+    const pool = new pg.Pool({ ...adminPgConfig(tenant.dbName), max: 2 });
     const db = drizzle(pool, { schema });
     const password = input.adminPassword ?? generatePassword(16);
     const username = (input.adminUsername ?? input.adminEmail ?? 'admin').toLowerCase();
@@ -163,7 +163,7 @@ export async function migrateAllTenants(opts: { concurrency?: number; only?: str
       try {
         const url = t.dbUrlEnc ? unseal(t.dbUrlEnc, config.APP_ENCRYPTION_KEY) : null;
         await migrateTenantDatabase(t.dbName, url);
-        const pool = new pg.Pool(url ? { connectionString: url, max: 2 } : { ...pgConfig(t.dbName), max: 2 });
+        const pool = new pg.Pool(url ? { connectionString: url, max: 2 } : { ...adminPgConfig(t.dbName), max: 2 });
         try {
           await syncSystemRoles(drizzle(pool, { schema }));
         } finally {

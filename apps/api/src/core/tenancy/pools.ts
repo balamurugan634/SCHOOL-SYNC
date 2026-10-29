@@ -3,7 +3,7 @@ import { LRUCache } from 'lru-cache';
 import pg from 'pg';
 import { config } from '../../config';
 import * as schema from '../../db/tenant/schema';
-import { pgConfig } from './control-db';
+import { adminPgConfig, pgConfig } from './control-db';
 import type { TenantInfo } from './registry';
 
 export type TenantDb = NodePgDatabase<typeof schema>;
@@ -50,5 +50,5 @@ export async function closeAllTenantPools(): Promise<void> {
 
 /** Connect directly (no pool) — for provisioning/migrations. */
 export function directClient(database: string): pg.Client {
-  return new pg.Client(pgConfig(database));
+  return new pg.Client(adminPgConfig(database));
 }

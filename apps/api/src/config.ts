@@ -26,6 +26,10 @@ const schema = z.object({
   // PostgreSQL cluster. Each school gets its own database on it (or on another cluster, see tenants.db_url_enc).
   PG_HOST: z.string().default('127.0.0.1'),
   PG_PORT: z.coerce.number().int().default(54329),
+  // Provisioning (CREATE DATABASE, migrations, advisory locks) needs a SESSION-mode connection. When normal traffic goes through a
+  // transaction-mode pooler (PgBouncer), point these at Postgres itself. Default: same as PG_HOST / PG_PORT.
+  PG_ADMIN_HOST: z.string().optional(),
+  PG_ADMIN_PORT: z.coerce.number().int().optional(),
   PG_USER: z.string().default('postgres'),
   PG_PASSWORD: z.string().default('postgres'),
   PG_SSL: bool,

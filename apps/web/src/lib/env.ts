@@ -18,7 +18,10 @@ export const env = {
   },
   /** host[:port] used when building links to a school: `localhost:3000` or `schoolsync.app`. */
   get publicBase() {
-    return (read('NEXT_PUBLIC_BASE_DOMAIN') ?? `${this.baseDomain}:3000`).toLowerCase();
+    const explicit = read('NEXT_PUBLIC_BASE_DOMAIN');
+    if (explicit) return explicit.toLowerCase();
+    // in production the browser reaches the app through the reverse proxy on the standard port; `:3000` is only the local development default
+    return this.isProd ? this.baseDomain : `${this.baseDomain}:3000`;
   },
   get defaultSite() {
     return read('NEXT_PUBLIC_DEFAULT_SITE')?.toLowerCase();

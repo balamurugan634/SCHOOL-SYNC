@@ -17,6 +17,11 @@ export function pgConfig(database: string, extra: pg.PoolConfig = {}): pg.PoolCo
   };
 }
 
+/** Connection settings for provisioning work that needs a session (create/drop database, migrations, advisory locks): direct to Postgres, never through a transaction pooler. */
+export function adminPgConfig(database: string, extra: pg.PoolConfig = {}): pg.PoolConfig {
+  return pgConfig(database, { host: config.PG_ADMIN_HOST ?? config.PG_HOST, port: config.PG_ADMIN_PORT ?? config.PG_PORT, ...extra });
+}
+
 let controlPool: pg.Pool | undefined;
 let controlDbInstance: ControlDb | undefined;
 
@@ -31,7 +36,7 @@ export function controlDb(): ControlDb {
 
 /** Short-lived admin connection to the `postgres` maintenance DB (CREATE/DROP DATABASE). */
 export async function withAdminClient<T>(fn: (c: pg.Client) => Promise<T>): Promise<T> {
-  const client = new pg.Client(pgConfig('postgres'));
+  const client = new pg.Client(adminPgConfig('postgres'));
   await client.connect();
   try {
     return await fn(client);
@@ -190,7 +195,7 @@ export async function ensureControlSchema(): Promise<void> {
       await c.query('select pg_advisory_unlock(727000)');
     }
   });
-  const c = new pg.Client(pgConfig(config.CONTROL_DB));
+  const c = new pg.Client(adminPgConfig(config.CONTROL_DB));
   await c.connect();
   try {
     await c.query('select pg_advisory_lock(727001)');

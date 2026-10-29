@@ -43,6 +43,8 @@ services:
       NODE_ENV: production
       PG_HOST: pgbouncer
       PG_PORT: 5432
+      PG_ADMIN_HOST: postgres      # provisioning needs a direct connection, not the pooler
+      PG_ADMIN_PORT: 5432
       REDIS_URL: redis://redis:6379/0
       RUN_WORKERS: "false"          # workers run in the dedicated `worker` service
       TRUST_PROXY: "true"
@@ -60,6 +62,8 @@ services:
       NODE_ENV: production
       PG_HOST: pgbouncer
       PG_PORT: 5432
+      PG_ADMIN_HOST: postgres      # provisioning needs a direct connection, not the pooler
+      PG_ADMIN_PORT: 5432
       REDIS_URL: redis://redis:6379/0
       RUN_WORKERS: "true"
       STORAGE_DIR: /data/storage
@@ -87,6 +91,7 @@ services:
       NODE_ENV: production
       API_URL: http://api:4000          # server-side only; the browser never talks to the API directly
       BASE_DOMAIN: "${BASE_DOMAIN}"
+      NEXT_PUBLIC_BASE_DOMAIN: "${BASE_DOMAIN}"
       SITE_SELECT_MODE: redirect        # visitors without a school are sent to <code>.${BASE_DOMAIN}
     depends_on: [api]
 

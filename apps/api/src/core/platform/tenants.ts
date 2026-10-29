@@ -45,7 +45,8 @@ export const isValidTimeZone = (tz: string): boolean => {
 };
 
 /** Demo data creates users with a well-known password, so it is never offered in production. */
-export const demoDataAllowed = (): boolean => config.NODE_ENV !== 'production' && config.PLATFORM_ALLOW_DEMO_DATA !== false;
+/** Demo data: on by default outside production, off by default in production, and PLATFORM_ALLOW_DEMO_DATA=true / false overrides either way (a pilot or demo server may want it on). */
+export const demoDataAllowed = (): boolean => config.PLATFORM_ALLOW_DEMO_DATA === true || (config.NODE_ENV !== 'production' && config.PLATFORM_ALLOW_DEMO_DATA !== false);
 
 // ── views ───────────────────────────────────────────────────────────────────────────────────────
 export function toSubscription(r: SubRow): PlatformSubscription {

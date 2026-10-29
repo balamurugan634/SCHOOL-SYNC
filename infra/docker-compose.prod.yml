@@ -67,6 +67,8 @@ services:
       NODE_OPTIONS: --max-old-space-size=${API_HEAP_MB:-512}
       PG_HOST: pgbouncer
       PG_PORT: 5432
+      PG_ADMIN_HOST: postgres      # creating a school (CREATE DATABASE, migrations, locks) needs a direct connection, not the pooler
+      PG_ADMIN_PORT: 5432
       REDIS_URL: redis://redis:6379/0
       RUN_WORKERS: "false"          # background jobs run in the dedicated `worker` service
       TRUST_PROXY: "true"
@@ -81,6 +83,8 @@ services:
       NODE_OPTIONS: --max-old-space-size=${API_HEAP_MB:-512}
       PG_HOST: pgbouncer
       PG_PORT: 5432
+      PG_ADMIN_HOST: postgres      # creating a school (CREATE DATABASE, migrations, locks) needs a direct connection, not the pooler
+      PG_ADMIN_PORT: 5432
       REDIS_URL: redis://redis:6379/0
       RUN_WORKERS: "true"
       TRUST_PROXY: "true"
@@ -113,6 +117,7 @@ services:
       NODE_OPTIONS: --max-old-space-size=${WEB_HEAP_MB:-512}
       API_URL: http://api:4000          # server-side only; the browser never talks to the API directly
       BASE_DOMAIN: "${BASE_DOMAIN:?set BASE_DOMAIN}"
+      NEXT_PUBLIC_BASE_DOMAIN: "${BASE_DOMAIN}"   # read at runtime by the server code that builds school links
       SITE_SELECT_MODE: redirect        # visitors without a school are sent to <code>.${BASE_DOMAIN}
     depends_on: { api: { condition: service_healthy } }
     healthcheck: { test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/').then(r=>process.exit(r.status<500?0:1)).catch(()=>process.exit(1))"], interval: 15s, timeout: 5s, retries: 5, start_period: 30s }
