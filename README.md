@@ -74,6 +74,10 @@ School administrators set up their own sender under **Settings → School profil
 * **Upgrading existing schools.** Run `pnpm site:migrate`: migration `0001_email_accounts_queue` adds the two tables to every school database. Restart the API afterwards.
 * Tests: `pnpm --filter @school-sync/api exec vitest run test/email-settings.test.ts` (uses a stub transport and a tiny in-process SMTP server, `apps/api/test/stub-smtp.ts`).
 
+## Online meetings (Zoom and Google Meet, each school connects its own)
+
+Schools connect their own Zoom or Google Workspace account under **Settings → School profile and settings → Online meetings** (needs `settings:edit`). An event published with an *Online meeting* option, and an online parent–teacher meeting that is confirmed, then get a Zoom or Google Meet meeting for that day and time. Its join link shows to everyone who can see the event, follows date / time / title changes, and is cancelled with the event or meeting. A provider outage never blocks saving: the item shows a **Retry** button and is retried automatically for a day. Step-by-step setup for school administrators, the failure rules and the operator notes are in [docs/ONLINE-MEETINGS.md](docs/ONLINE-MEETINGS.md). Existing schools: run `pnpm site:migrate` (migration `0002_online_meetings`). Tests: `pnpm --filter @school-sync/api exec vitest run test/online-meetings.test.ts` (local stub Zoom and Google servers, `apps/api/test/stub-meetings.ts`).
+
 ## Mobile app (Flutter, `../SCHOOL-SYNC-MOBILE`)
 
 One app for every school: the user enters the school's site **once**, then signs in. Student, parent, teacher and management experiences.

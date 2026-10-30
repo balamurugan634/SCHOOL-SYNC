@@ -1,6 +1,7 @@
 import { and, asc, eq, gte, inArray, lt, lte, ne, sql } from 'drizzle-orm';
 import type { CalendarItem } from '@school-sync/shared';
 import { addDaysIso } from '../../core/http';
+import { joinUrlOf } from '../../core/online-meetings';
 import type { Principal } from '../../core/rbac/principal';
 import { assertStudentAccess, sectionScope } from '../../core/rbac/scope';
 import type { Executor } from '../../core/tenancy/pools';
@@ -53,6 +54,7 @@ export async function calendarFeed(db: Executor, tenant: TenantInfo, p: Principa
       studentId: null,
       entityId: e.id,
       route: `/events/${e.id}`,
+      joinUrl: e.status === 'published' ? joinUrlOf(e) : null,
     });
   }
 
@@ -87,6 +89,7 @@ export async function calendarFeed(db: Executor, tenant: TenantInfo, p: Principa
           studentId: child?.id ?? own ?? null,
           entityId: r.paper.id,
           route: `/results/${r.paper.examId}`,
+          joinUrl: null,
         });
       }
     }
@@ -130,6 +133,7 @@ export async function calendarFeed(db: Executor, tenant: TenantInfo, p: Principa
         studentId: child?.id ?? own ?? null,
         entityId: r.id,
         route: `/homework/${r.id}`,
+        joinUrl: null,
       });
     }
   }

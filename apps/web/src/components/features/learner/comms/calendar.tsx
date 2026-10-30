@@ -14,6 +14,7 @@ import { Card, CardBody } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
 import { IconButton } from '@/components/ui/icon-button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { JoinButton } from '../../online-meeting/online-meeting';
 import { ErrorState } from '../states';
 import { useLearner } from '../use-learner';
 import { useUrlParams } from '../url-state';
@@ -237,9 +238,28 @@ function ItemRow({ item, target, onEvent }: { item: CalendarItem; target: Target
     </>
   );
   const cls = 'tr-colors flex w-full items-start gap-3 px-5 py-3.5 text-left max-sm:px-4';
-  if (target?.type === 'event') return <button type="button" onClick={() => onEvent(target.id)} className={cn(cls, 'hover:bg-surface-subtle')}>{body}</button>;
-  if (target?.type === 'link') return <Link href={target.href} className={cn(cls, 'hover:bg-surface-subtle')}>{body}</Link>;
-  return <div className={cls}>{body}</div>;
+  const main =
+    target?.type === 'event' ? (
+      <button type="button" onClick={() => onEvent(target.id)} className={cn(cls, 'hover:bg-surface-subtle')}>{body}</button>
+    ) : target?.type === 'link' ? (
+      <Link href={target.href} className={cn(cls, 'hover:bg-surface-subtle')}>{body}</Link>
+    ) : (
+      <div className={cls}>{body}</div>
+    );
+  // the Join link sits under the item, not inside its button / link (an interactive element must not contain another)
+  const join = item.status !== 'cancelled' && item.joinUrl ? (
+    <div className="px-5 pb-3.5 max-sm:px-4">
+      <JoinButton url={item.joinUrl} />
+    </div>
+  ) : null;
+  return join ? (
+    <>
+      {main}
+      {join}
+    </>
+  ) : (
+    main
+  );
 }
 
 function DayPanel({ day, items, target, onEvent }: { day: string; items: CalendarItem[]; target: ReturnType<typeof useItemTarget>; onEvent: (id: string) => void }) {

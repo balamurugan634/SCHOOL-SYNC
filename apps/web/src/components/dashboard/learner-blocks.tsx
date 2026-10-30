@@ -10,6 +10,7 @@ import { Badge, StatusChip } from '../ui/badge';
 import { Button } from '../ui/button';
 import { Card, CardBody, CardHeader } from '../ui/card';
 import { EmptyState } from '../ui/empty-state';
+import { JoinButton, JoinFor } from '../features/online-meeting/online-meeting';
 
 type Announcements = ParentDashboard['announcements'];
 
@@ -117,6 +118,7 @@ export function CalendarCard({ items, href, title = 'Coming up' }: { items: Cale
                     {c.subtitle ? ` · ${c.subtitle}` : ''}
                   </p>
                 </div>
+                {c.status !== 'cancelled' && <JoinButton url={c.joinUrl} className="shrink-0" />}
               </li>
             ))}
           </ul>
@@ -149,6 +151,7 @@ export function MeetingsCard({ meetings, href }: { meetings: MeetingItem[]; href
                   {m.teacher.name}
                   {m.scheduledAt ? ` · ${fmtDateTime(m.scheduledAt)}` : m.proposedAt ? ` · proposed ${fmtDateTime(m.proposedAt)}` : ''}
                 </p>
+                {m.status === 'confirmed' && m.onlineMeeting?.status === 'scheduled' && <JoinFor meeting={m.onlineMeeting} />}
               </li>
             ))}
           </ul>

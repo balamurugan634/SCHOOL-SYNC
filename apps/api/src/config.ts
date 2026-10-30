@@ -87,6 +87,13 @@ const schema = z.object({
   /** pause between two queued emails of one school, in ms (the queue sends strictly one message at a time) */
   EMAIL_SEND_INTERVAL_MS: z.coerce.number().int().min(0).max(60_000).default(300),
 
+  // Online meetings (Zoom / Google Meet). Defaults are the real provider hosts; override ONLY for local stub servers in dev and tests
+  // (production refuses anything that is not https).
+  ZOOM_OAUTH_BASE: z.string().default('https://zoom.us'),
+  ZOOM_API_BASE: z.string().default('https://api.zoom.us/v2'),
+  GOOGLE_TOKEN_URL: z.string().default('https://oauth2.googleapis.com/token'),
+  GOOGLE_CALENDAR_BASE: z.string().default('https://www.googleapis.com/calendar/v3'),
+
   STORAGE_DRIVER: z.enum(['local']).default('local'),
   STORAGE_DIR: z.string().default('./storage'),
   MAX_UPLOAD_MB: z.coerce.number().default(15),
@@ -110,6 +117,9 @@ function load(): Config {
       throw new Error('Refusing to start in production with placeholder secrets');
     }
     if (cfg.ALLOW_PRIVATE_SMTP) throw new Error('Refusing to start in production with ALLOW_PRIVATE_SMTP=true (it disables the SSRF guard for school SMTP hosts)');
+    for (const k of ['ZOOM_OAUTH_BASE', 'ZOOM_API_BASE', 'GOOGLE_TOKEN_URL', 'GOOGLE_CALENDAR_BASE'] as const) {
+      if (!cfg[k].startsWith('https://')) throw new Error(`Refusing to start in production with ${k} that is not https`);
+    }
   }
   return cfg;
 }

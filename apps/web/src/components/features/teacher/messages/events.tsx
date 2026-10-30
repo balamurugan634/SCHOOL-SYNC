@@ -10,7 +10,8 @@ import { applyApiErrors, useZodForm } from '@/lib/client/use-zod-form';
 import { useUnsavedGuard } from '@/lib/client/use-unsaved-guard';
 import { commsError } from '@/lib/client/teacher-comms';
 import { isOutOfScope } from '@/lib/client/teacher-errors';
-import { useCalendar, useDeleteEvent, useEvent, useEventAction, useEventResponses, useEvents, useSaveEvent } from '@/lib/client/teacher-comms';
+import { useCalendar, useDeleteEvent, useEvent, useEventAction, useEventResponses, useEvents, useRetryEventOnline, useSaveEvent } from '@/lib/client/teacher-comms';
+import { useOnlineProviders } from '@/lib/client/online-meetings';
 import { usePermissions } from '@/components/me-context';
 import { Badge, StatusChip } from '@/components/ui/badge';
 import { Banner } from '@/components/ui/banner';
@@ -24,6 +25,8 @@ import { ProgressBar } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { FormCheckbox, FormDate, FormInput, FormSection, FormSelect } from '@/components/ui/form';
 import { toast } from '@/components/ui/toaster';
+import { JoinCard, JoinFor, providerLabel } from '../../online-meeting/online-meeting';
+import { OnlineMeetingField, type OnlineBlock, type OnlineChoice } from '../../online-meeting/online-meeting-field';
 import { CardListSkeleton, ErrorCard, FilterSelect, Meta, useUrlState, useWriteGate } from '../common';
 import { AudiencePicker, ClearableDateTime, DrawerSection, NullableInput, NullableTextarea, Pager } from './fields';
 
@@ -199,6 +202,12 @@ function EventRow({ e, onOpen }: { e: EventItem; onOpen: () => void }) {
           )}
         </div>
       </button>
+      {e.status === 'published' && e.onlineMeeting?.status === 'scheduled' && (
+        <div className="flex flex-wrap items-center gap-2 border-t border-border px-4 py-2.5 max-sm:px-3">
+          <span className="t-caption text-ink-2">Online · {providerLabel(e.onlineMeeting.provider)}</span>
+          <JoinFor meeting={e.onlineMeeting} className="ml-auto" />
+        </div>
+      )}
     </Card>
   );
 }
@@ -253,6 +262,7 @@ function EventDetail({ id, onEdit, onGone }: { id: string; onEdit: () => void; o
   const gate = useWriteGate();
   const act = useEventAction();
   const del = useDeleteEvent();
+  const retry = useRetryEventOnline();
   const [confirm, setConfirm] = React.useState<'publish' | 'cancel' | 'delete' | null>(null);
   const [err, setErr] = React.useState<string | null>(null);
 
@@ -313,6 +323,22 @@ function EventDetail({ id, onEdit, onGone }: { id: string; onEdit: () => void; o
         {err && <Banner tone="danger" onDismiss={() => setErr(null)}>{err}</Banner>}
         {cancelled && <Banner tone="warning" title="This event was cancelled">It stays on the calendar as cancelled, and its audience has been told.</Banner>}
         {gate.readOnly && e.canManage && <Banner tone="locked">{gate.reason}</Banner>}
+
+        {(e.onlineMeeting || (e.onlineProvider && e.canManage)) && (
+          <JoinCard
+            meeting={e.onlineMeeting}
+            chosen={e.onlineProvider}
+            canEdit={e.canManage}
+            retrying={retry.isPending}
+            blockedReason={gate.readOnly ? gate.reason : null}
+            onRetry={() =>
+              void retry.mutateAsync(e.id).then(
+                (r) => (r.onlineMeeting?.status === 'scheduled' ? toast.success('The online meeting is set up') : toast.error('Still not working', { description: r.onlineMeeting?.error ?? 'Try again in a few minutes.' })),
+                (x) => toast.error(commsError(x), { duration: 8000 }),
+              )
+            }
+          />
+        )}
 
         <Meta
           items={[
@@ -392,7 +418,7 @@ function EventDetail({ id, onEdit, onGone }: { id: string; onEdit: () => void; o
         <ConfirmDialog open onOpenChange={(o) => !o && setConfirm(null)} title="Publish this event?" description={<>“{e.title}” is shown on the calendar of {e.audience.map((a) => a.label).join(', ') || 'the selected classes'}, and their students and guardians are notified.</>} confirmLabel="Publish event" loading={busy} onConfirm={() => void run(() => act.mutateAsync({ id: e.id, action: 'publish' }), 'Event published')} />
       )}
       {confirm === 'cancel' && (
-        <ConfirmDialog open onOpenChange={(o) => !o && setConfirm(null)} title="Cancel this event?" description={<>“{e.title}” stays on the calendar marked as cancelled, and its audience is notified. You can’t undo this.</>} confirmLabel="Cancel event" cancelLabel="Keep event" destructive loading={busy} onConfirm={() => void run(() => act.mutateAsync({ id: e.id, action: 'cancel' }), 'Event cancelled')} />
+        <ConfirmDialog open onOpenChange={(o) => !o && setConfirm(null)} title="Cancel this event?" description={<>“{e.title}” stays on the calendar marked as cancelled, and its audience is notified.{e.onlineMeeting && e.onlineMeeting.status !== 'cancelled' ? <> The {providerLabel(e.onlineMeeting.provider)} meeting is cancelled too, so its link stops working.</> : null} You can’t undo this.</>} confirmLabel="Cancel event" cancelLabel="Keep event" destructive loading={busy} onConfirm={() => void run(() => act.mutateAsync({ id: e.id, action: 'cancel' }), 'Event cancelled')} />
       )}
       {confirm === 'delete' && (
         <ConfirmDialog
@@ -498,6 +524,7 @@ function EventForm({ initial, onDone, onCancel, onDirtyChange }: { initial: Even
   const save = useSaveEvent();
   const today = todayIso();
   const initAudience = React.useMemo(() => initial?.audience.map((a) => ({ type: a.type, id: a.id })) ?? [], [initial]);
+  const providers = useOnlineProviders();
   const form = useZodForm(eventCreateBody, {
     defaultValues: {
       title: initial?.title ?? '',
@@ -515,6 +542,7 @@ function EventForm({ initial, onDone, onCancel, onDirtyChange }: { initial: Even
       consentText: initial?.consentText ?? null,
       registrationDeadline: initial?.registrationDeadline ?? null,
       capacity: initial?.capacity ?? null,
+      onlineMeeting: initial?.onlineProvider ? { provider: initial.onlineProvider } : null,
       publish: false,
     },
   });
@@ -526,6 +554,10 @@ function EventForm({ initial, onDone, onCancel, onDirtyChange }: { initial: Even
   React.useEffect(() => () => onDirtyChange(false), [onDirtyChange]);
 
   const allDay = form.watch('allDay');
+  const startDate = form.watch('startDate');
+  const endDate = form.watch('endDate');
+  const online: OnlineChoice = form.watch('onlineMeeting')?.provider ?? 'none';
+  const onlineBlock: OnlineBlock = allDay ? 'all_day' : endDate && endDate !== startDate ? 'multi_day' : null;
   const consent = form.watch('consentRequired');
   const registration = form.watch('registrationRequired');
   const asks = !!consent || !!registration;
@@ -546,6 +578,8 @@ function EventForm({ initial, onDone, onCancel, onDirtyChange }: { initial: Even
     if (!v.allDay && v.startTime && v.endTime && end === v.startDate && v.endTime <= v.startTime) err('endTime', 'The end time must be after the start time.');
     if (v.consentRequired && !v.consentText?.trim()) err('consentText', 'Write what parents are agreeing to.');
     if (!asks && (v.capacity != null || v.registrationDeadline)) err('capacity', 'Places and deadline only apply when you ask for registration or consent.');
+    const wantsOnline = !onlineBlock && !!v.onlineMeeting;
+    if (wantsOnline && (!v.startTime || !v.endTime)) err(v.startTime ? 'endTime' : 'startTime', 'An online meeting needs a start and an end time.');
     if (v.audience.length === 0) bad = true; // the picker shows its own message
     if (bad) {
       setFormError('Some details need fixing. Check the highlighted fields.');
@@ -568,6 +602,8 @@ function EventForm({ initial, onDone, onCancel, onDirtyChange }: { initial: Even
         consentText: v.consentRequired ? v.consentText : null,
         registrationDeadline: asks ? v.registrationDeadline ?? null : null,
         capacity: asks ? v.capacity ?? null : null,
+        // an event that cannot hold a meeting (all-day, several days) never sends one
+        onlineMeeting: wantsOnline ? v.onlineMeeting : null,
       };
       let r: EventItem;
       if (initial) {
@@ -617,6 +653,22 @@ function EventForm({ initial, onDone, onCancel, onDirtyChange }: { initial: Even
             </div>
           )}
         </FormSection>
+
+        <OnlineMeetingField
+          value={online}
+          onChange={(v) => form.setValue('onlineMeeting', v === 'none' ? null : { provider: v }, { shouldDirty: true })}
+          providers={providers.data}
+          loading={providers.isPending && !providers.isError}
+          block={onlineBlock}
+          onSetTime={() => {
+            form.setValue('allDay', false, { shouldDirty: true });
+            if (!form.getValues('startTime')) form.setValue('startTime', '09:00', { shouldDirty: true });
+            if (!form.getValues('endTime')) form.setValue('endTime', '10:00', { shouldDirty: true });
+          }}
+          onUseOneDay={() => form.setValue('endDate', form.getValues('startDate'), { shouldDirty: true })}
+          disabled={disabled}
+          existing={initial?.onlineMeeting && initial.onlineMeeting.status !== 'cancelled' ? initial.onlineMeeting.provider : null}
+        />
 
         <Controller control={form.control} name="audience" render={({ field }) => <AudiencePicker value={field.value ?? []} onChange={field.onChange} known={initial?.audience} error={audienceError} disabled={disabled} />} />
 

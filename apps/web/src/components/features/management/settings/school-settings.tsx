@@ -10,6 +10,7 @@ import { useUnsavedGuard } from '@/lib/client/use-unsaved-guard';
 import { cn } from '@/lib/cn';
 import { ErrorPanel, LoadingBlock } from '../shared/detail';
 import { EmailArea } from './email/email-area';
+import { MeetingsArea } from './meetings/meetings-area';
 import { BrandingForm } from './branding-form';
 import { FeaturesPanel } from './features-panel';
 import { GroupForm } from './group-form';
@@ -25,6 +26,7 @@ const TABS = [
   { value: 'library', label: 'Library' },
   { value: 'notifications', label: 'Notifications' },
   { value: 'email', label: 'Email' },
+  { value: 'meetings', label: 'Online meetings' },
   { value: 'features', label: 'Features' },
 ] as const;
 type TabKey = (typeof TABS)[number]['value'];
@@ -51,7 +53,7 @@ export function SchoolSettings() {
   const branding = useBranding();
   const features = useFeatures();
 
-  const needs = tab === 'profile' ? branding : tab === 'features' ? features : tab === 'email' ? null : settings;
+  const needs = tab === 'profile' ? branding : tab === 'features' ? features : tab === 'email' || tab === 'meetings' ? null : settings;
 
   return (
     <>
@@ -65,9 +67,11 @@ export function SchoolSettings() {
             </TabsTrigger>
           ))}
         </TabsList>
-        <div className={cn('mt-6', tab !== 'email' && 'max-w-3xl')}>
+        <div className={cn('mt-6', tab !== 'email' && tab !== 'meetings' && 'max-w-3xl')}>
           {tab === 'email' ? (
             <TabsContent value="email" className="mt-0"><EmailArea /></TabsContent>
+          ) : tab === 'meetings' ? (
+            <TabsContent value="meetings" className="mt-0"><MeetingsArea onDirtyChange={onDirty} /></TabsContent>
           ) : needs?.isPending ? (
             <Loading />
           ) : needs?.isError ? (

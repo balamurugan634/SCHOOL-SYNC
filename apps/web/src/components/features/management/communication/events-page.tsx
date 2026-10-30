@@ -12,6 +12,7 @@ import { Badge, StatusChip } from '@/components/ui/badge';
 import { DataTable } from '@/components/ui/data-table';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { JoinFor } from '../../online-meeting/online-meeting';
 import { ClearFilters, FilterBar, FilterChips, FilterDate, FilterSelect, SearchBox } from '../common/filters';
 import { GuardedButton } from '../common/guarded';
 import { useListState, useTabParam } from '../common/url-state';
@@ -115,6 +116,14 @@ function EventList() {
         { id: 'kind', header: 'Kind', cell: (r) => <Badge variant="outline">{KIND_LABEL[r.kind] ?? r.kind}</Badge>, mobile: 'detail', label: 'Kind' },
         { id: 'when', header: 'When', cell: (r) => eventWhen(r), sortable: true, sortValue: (r) => r.startDate, mobile: 'sub' },
         { id: 'where', header: 'Place', cell: (r) => r.location ?? '—', defaultHidden: true, mobile: 'hide' },
+        {
+          id: 'online',
+          header: 'Online',
+          // depends on the row alone; a failed meeting is flagged for the people who can fix it
+          cell: (r) => (r.onlineMeeting?.status === 'scheduled' && r.status === 'published' ? <JoinFor meeting={r.onlineMeeting} /> : r.canManage && r.onlineMeeting?.status === 'failed' ? <Badge variant="danger">Needs attention</Badge> : <span className="text-ink-3">—</span>),
+          mobile: 'detail',
+          label: 'Online',
+        },
         { id: 'resp', header: 'Answers', cell: (r) => (r.registrationRequired ? 'Registration' : r.consentRequired ? 'Consent' : <span className="text-ink-3">None</span>), mobile: 'hide' },
         { id: 'status', header: 'Status', cell: (r) => <StatusChip status={r.status} />, mobile: 'status' },
       ]}

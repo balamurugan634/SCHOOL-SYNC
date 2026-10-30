@@ -1,6 +1,6 @@
 # API index (generated)
 
-434 operations, API version 1.0.0. Base: `/api/v1`, header `X-Tenant: <site code>`, `Authorization: Bearer <token>`. Full schemas: `docs/openapi.json`; live docs: `/docs`.
+443 operations, API version 1.0.0. Base: `/api/v1`, header `X-Tenant: <site code>`, `Authorization: Bearer <token>`. Full schemas: `docs/openapi.json`; live docs: `/docs`.
 Regenerate with `pnpm --filter @school-sync/api openapi`.
 
 ## Academics
@@ -163,11 +163,13 @@ Regenerate with `pnpm --filter @school-sync/api openapi`.
 |---|---|---|
 | `GET` | `/api/v1/events` | Events & holidays I can see |
 | `POST` | `/api/v1/events` | Create an event / holiday / PTM / sports day (draft, or published at once with `publish: true`) |
+| `GET` | `/api/v1/events/online-providers` | Zoom / Google Meet providers the school has connected and switched on (what an event or meeting form may offer), and its default |
 | `GET` | `/api/v1/events/{id}` | One event (with response counts for its organisers) |
 | `PATCH` | `/api/v1/events/{id}` | Edit an event (creator, or school-scope editor); changed date / time / place of a published event notifies the audience |
 | `DELETE` | `/api/v1/events/{id}` | Delete a draft event (or, with events:delete, a published one that has no responses) |
 | `POST` | `/api/v1/events/{id}/publish` | Publish a draft event and notify its audience (`event.new`) |
 | `POST` | `/api/v1/events/{id}/cancel` | Cancel an event (kept on the calendar as cancelled; the audience is notified) |
+| `POST` | `/api/v1/events/{id}/online-meeting/retry` | Retry the event’s online meeting after a failure (create, update or cancel at Zoom / Google Meet) |
 | `POST` | `/api/v1/events/{id}/respond` | Register for an event / give or deny consent, for one child (own child for students, linked child for parents) |
 | `GET` | `/api/v1/events/{id}/responses` | Organisers: answers per child (`response=pending` lists children who have not answered) |
 | `GET` | `/api/v1/calendar` | Calendar feed: events, holidays, exam papers and homework due dates for me (max 100 days) |
@@ -355,6 +357,7 @@ Regenerate with `pnpm --filter @school-sync/api openapi`.
 | `POST` | `/api/v1/meetings/{id}/reschedule` | Move a confirmed meeting to a new time (the teacher must be free); the parent is notified (`meeting.rescheduled`) |
 | `POST` | `/api/v1/meetings/{id}/complete` | Close a confirmed meeting with outcome notes |
 | `POST` | `/api/v1/meetings/{id}/cancel` | Cancel a pending or confirmed meeting (the parent who asked, or the teacher / class teacher / office); the other side is notified (`meeting.cancelled`) |
+| `POST` | `/api/v1/meetings/{id}/online-meeting/retry` | Retry the meeting’s Zoom / Google Meet room after a failure (create, update or cancel at the provider) |
 
 ## Notifications
 
@@ -368,6 +371,17 @@ Regenerate with `pnpm --filter @school-sync/api openapi`.
 | `POST` | `/api/v1/notifications/test` | Send a test push to my registered devices (5 per minute) |
 | `POST` | `/api/v1/notifications/{id}/read` | Mark one notification as read |
 | `DELETE` | `/api/v1/notifications/{id}` | Delete one notification from my inbox |
+
+## Online meetings
+
+| | Path | Summary |
+|---|---|---|
+| `GET` | `/api/v1/settings/meetings` | The school’s Zoom and Google Meet connections and the default provider. Secrets are never returned (`secretSet` only) |
+| `PUT` | `/api/v1/settings/meetings/zoom` | Connect or change Zoom (Server-to-Server OAuth app: Account ID, Client ID, Client Secret, host email). `clientSecret` "" = keep the saved one (required the first time) |
+| `PUT` | `/api/v1/settings/meetings/google` | Connect or change Google Meet (Google Workspace service account with domain-wide delegation + the organizer to act for). `serviceAccountJson` "" = keep the saved key (required the first time) |
+| `DELETE` | `/api/v1/settings/meetings/{provider}` | Disconnect a provider (its credentials are deleted). Meetings already created there stay there |
+| `PUT` | `/api/v1/settings/meetings/default` | Choose the provider used when a meeting is scheduled without picking one (must be connected and switched on) |
+| `POST` | `/api/v1/settings/meetings/{provider}/test` | Test the saved connection: sign in and make one harmless read (Zoom: token + the host user; Google: token + a one-event calendar listing). Nothing is created |
 
 ## Payments
 

@@ -55846,6 +55846,78 @@
                                 "type": "null"
                               }
                             ]
+                          },
+                          "onlineMeeting": {
+                            "anyOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "provider": {
+                                    "type": "string",
+                                    "enum": [
+                                      "zoom",
+                                      "google"
+                                    ]
+                                  },
+                                  "status": {
+                                    "type": "string",
+                                    "enum": [
+                                      "scheduled",
+                                      "failed",
+                                      "cancelled"
+                                    ]
+                                  },
+                                  "joinUrl": {
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ]
+                                  },
+                                  "passcode": {
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ]
+                                  },
+                                  "startUrl": {
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ]
+                                  },
+                                  "error": {
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ]
+                                  }
+                                },
+                                "required": [
+                                  "provider",
+                                  "status",
+                                  "joinUrl",
+                                  "passcode"
+                                ],
+                                "additionalProperties": false
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "onlineProvider": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "zoom",
+                                  "google"
+                                ]
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
                           }
                         },
                         "required": [
@@ -55870,7 +55942,9 @@
                           "responseOpen",
                           "children",
                           "audience",
-                          "counts"
+                          "counts",
+                          "onlineMeeting",
+                          "onlineProvider"
                         ],
                         "additionalProperties": false
                       }
@@ -55916,7 +55990,7 @@
         "tags": [
           "Events"
         ],
-        "description": "Teachers (assigned scope) may only address sections they lead or teach. `registrationRequired` asks parents for going / not going per child; `consentRequired` (with `consentText`) asks for permission per child. `capacity` limits positive answers; `registrationDeadline` closes answers.",
+        "description": "Teachers (assigned scope) may only address sections they lead or teach. `registrationRequired` asks parents for going / not going per child; `consentRequired` (with `consentText`) asks for permission per child. `capacity` limits positive answers; `registrationDeadline` closes answers. `onlineMeeting: { provider: \"zoom\" | \"google\" }` adds a Zoom / Google Meet meeting (needs a start and end time on ONE day and a connected provider; created when the event is published, updated when the day, time or title change, cancelled with the event). A provider failure never blocks saving: the event answers with `onlineMeeting.status = \"failed\"` and can be retried.",
         "requestBody": {
           "required": true,
           "content": {
@@ -56061,6 +56135,28 @@
                         "type": "integer",
                         "minimum": 1,
                         "maximum": 100000
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "onlineMeeting": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "provider": {
+                            "type": "string",
+                            "enum": [
+                              "zoom",
+                              "google"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "provider"
+                        ]
                       },
                       {
                         "type": "null"
@@ -56372,6 +56468,78 @@
                           "type": "null"
                         }
                       ]
+                    },
+                    "onlineMeeting": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "provider": {
+                              "type": "string",
+                              "enum": [
+                                "zoom",
+                                "google"
+                              ]
+                            },
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "scheduled",
+                                "failed",
+                                "cancelled"
+                              ]
+                            },
+                            "joinUrl": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "passcode": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "startUrl": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "error": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "provider",
+                            "status",
+                            "joinUrl",
+                            "passcode"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "onlineProvider": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": [
+                            "zoom",
+                            "google"
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     }
                   },
                   "required": [
@@ -56396,7 +56564,60 @@
                     "responseOpen",
                     "children",
                     "audience",
-                    "counts"
+                    "counts",
+                    "onlineMeeting",
+                    "onlineProvider"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/events/online-providers": {
+      "get": {
+        "summary": "Zoom / Google Meet providers the school has connected and switched on (what an event or meeting form may offer), and its default",
+        "tags": [
+          "Events"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "providers": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": [
+                          "zoom",
+                          "google"
+                        ]
+                      }
+                    },
+                    "defaultProvider": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": [
+                            "zoom",
+                            "google"
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "providers",
+                    "defaultProvider"
                   ],
                   "additionalProperties": false
                 }
@@ -56715,6 +56936,78 @@
                           "type": "null"
                         }
                       ]
+                    },
+                    "onlineMeeting": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "provider": {
+                              "type": "string",
+                              "enum": [
+                                "zoom",
+                                "google"
+                              ]
+                            },
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "scheduled",
+                                "failed",
+                                "cancelled"
+                              ]
+                            },
+                            "joinUrl": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "passcode": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "startUrl": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "error": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "provider",
+                            "status",
+                            "joinUrl",
+                            "passcode"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "onlineProvider": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": [
+                            "zoom",
+                            "google"
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     }
                   },
                   "required": [
@@ -56739,7 +57032,9 @@
                     "responseOpen",
                     "children",
                     "audience",
-                    "counts"
+                    "counts",
+                    "onlineMeeting",
+                    "onlineProvider"
                   ],
                   "additionalProperties": false
                 }
@@ -56894,6 +57189,28 @@
                         "type": "integer",
                         "minimum": 1,
                         "maximum": 100000
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "onlineMeeting": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "provider": {
+                            "type": "string",
+                            "enum": [
+                              "zoom",
+                              "google"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "provider"
+                        ]
                       },
                       {
                         "type": "null"
@@ -57208,6 +57525,78 @@
                           "type": "null"
                         }
                       ]
+                    },
+                    "onlineMeeting": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "provider": {
+                              "type": "string",
+                              "enum": [
+                                "zoom",
+                                "google"
+                              ]
+                            },
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "scheduled",
+                                "failed",
+                                "cancelled"
+                              ]
+                            },
+                            "joinUrl": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "passcode": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "startUrl": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "error": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "provider",
+                            "status",
+                            "joinUrl",
+                            "passcode"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "onlineProvider": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": [
+                            "zoom",
+                            "google"
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     }
                   },
                   "required": [
@@ -57232,7 +57621,9 @@
                     "responseOpen",
                     "children",
                     "audience",
-                    "counts"
+                    "counts",
+                    "onlineMeeting",
+                    "onlineProvider"
                   ],
                   "additionalProperties": false
                 }
@@ -57593,6 +57984,78 @@
                           "type": "null"
                         }
                       ]
+                    },
+                    "onlineMeeting": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "provider": {
+                              "type": "string",
+                              "enum": [
+                                "zoom",
+                                "google"
+                              ]
+                            },
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "scheduled",
+                                "failed",
+                                "cancelled"
+                              ]
+                            },
+                            "joinUrl": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "passcode": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "startUrl": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "error": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "provider",
+                            "status",
+                            "joinUrl",
+                            "passcode"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "onlineProvider": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": [
+                            "zoom",
+                            "google"
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     }
                   },
                   "required": [
@@ -57617,7 +58080,9 @@
                     "responseOpen",
                     "children",
                     "audience",
-                    "counts"
+                    "counts",
+                    "onlineMeeting",
+                    "onlineProvider"
                   ],
                   "additionalProperties": false
                 }
@@ -57936,6 +58401,78 @@
                           "type": "null"
                         }
                       ]
+                    },
+                    "onlineMeeting": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "provider": {
+                              "type": "string",
+                              "enum": [
+                                "zoom",
+                                "google"
+                              ]
+                            },
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "scheduled",
+                                "failed",
+                                "cancelled"
+                              ]
+                            },
+                            "joinUrl": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "passcode": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "startUrl": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "error": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "provider",
+                            "status",
+                            "joinUrl",
+                            "passcode"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "onlineProvider": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": [
+                            "zoom",
+                            "google"
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     }
                   },
                   "required": [
@@ -57960,7 +58497,427 @@
                     "responseOpen",
                     "children",
                     "audience",
-                    "counts"
+                    "counts",
+                    "onlineMeeting",
+                    "onlineProvider"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/events/{id}/online-meeting/retry": {
+      "post": {
+        "summary": "Retry the event’s online meeting after a failure (create, update or cancel at Zoom / Google Meet)",
+        "tags": [
+          "Events"
+        ],
+        "description": "Only while `onlineMeeting.status` is `failed`; 409 ONLINE_MEETING_NOT_FAILED otherwise. The result (success or a new safe error) is in the returned event. Failed meetings are also retried automatically every few minutes for a day.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "kind": {
+                      "type": "string",
+                      "enum": [
+                        "holiday",
+                        "event",
+                        "exam",
+                        "ptm",
+                        "sports",
+                        "other"
+                      ]
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "draft",
+                        "published",
+                        "cancelled"
+                      ]
+                    },
+                    "startDate": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    },
+                    "endDate": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    },
+                    "startTime": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "endTime": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "allDay": {
+                      "type": "boolean"
+                    },
+                    "location": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "registrationRequired": {
+                      "type": "boolean"
+                    },
+                    "consentRequired": {
+                      "type": "boolean"
+                    },
+                    "consentText": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "registrationDeadline": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "format": "date-time",
+                          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "capacity": {
+                      "anyOf": [
+                        {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                    },
+                    "canManage": {
+                      "type": "boolean"
+                    },
+                    "responseOpen": {
+                      "type": "boolean"
+                    },
+                    "children": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "studentId": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "studentName": {
+                            "type": "string"
+                          },
+                          "response": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "going",
+                                  "not_going",
+                                  "consent_given",
+                                  "consent_denied"
+                                ]
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "note": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "respondedAt": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "format": "date-time",
+                                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [
+                          "studentId",
+                          "studentName",
+                          "response",
+                          "note",
+                          "respondedAt"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "audience": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "enum": [
+                              "all",
+                              "user_type",
+                              "role",
+                              "grade",
+                              "section"
+                            ]
+                          },
+                          "id": {
+                            "type": "string"
+                          },
+                          "label": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "type",
+                          "id",
+                          "label"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "counts": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "eligible": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991
+                            },
+                            "going": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991
+                            },
+                            "notGoing": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991
+                            },
+                            "consentGiven": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991
+                            },
+                            "consentDenied": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991
+                            },
+                            "pending": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991
+                            },
+                            "capacity": {
+                              "anyOf": [
+                                {
+                                  "type": "integer",
+                                  "minimum": -9007199254740991,
+                                  "maximum": 9007199254740991
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "seatsLeft": {
+                              "anyOf": [
+                                {
+                                  "type": "integer",
+                                  "minimum": -9007199254740991,
+                                  "maximum": 9007199254740991
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            }
+                          },
+                          "required": [
+                            "eligible",
+                            "going",
+                            "notGoing",
+                            "consentGiven",
+                            "consentDenied",
+                            "pending",
+                            "capacity",
+                            "seatsLeft"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "onlineMeeting": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "provider": {
+                              "type": "string",
+                              "enum": [
+                                "zoom",
+                                "google"
+                              ]
+                            },
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "scheduled",
+                                "failed",
+                                "cancelled"
+                              ]
+                            },
+                            "joinUrl": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "passcode": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "startUrl": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "error": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "provider",
+                            "status",
+                            "joinUrl",
+                            "passcode"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "onlineProvider": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": [
+                            "zoom",
+                            "google"
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "title",
+                    "description",
+                    "kind",
+                    "status",
+                    "startDate",
+                    "endDate",
+                    "startTime",
+                    "endTime",
+                    "allDay",
+                    "location",
+                    "registrationRequired",
+                    "consentRequired",
+                    "consentText",
+                    "registrationDeadline",
+                    "capacity",
+                    "createdAt",
+                    "canManage",
+                    "responseOpen",
+                    "children",
+                    "audience",
+                    "counts",
+                    "onlineMeeting",
+                    "onlineProvider"
                   ],
                   "additionalProperties": false
                 }
@@ -58438,6 +59395,12 @@
                           },
                           "route": {
                             "type": "string"
+                          },
+                          "joinUrl": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
                           }
                         },
                         "required": [
@@ -58454,7 +59417,8 @@
                           "status",
                           "studentId",
                           "entityId",
-                          "route"
+                          "route",
+                          "joinUrl"
                         ],
                         "additionalProperties": false
                       }
@@ -58744,6 +59708,64 @@
                                 "cancel"
                               ]
                             }
+                          },
+                          "onlineMeeting": {
+                            "anyOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "provider": {
+                                    "type": "string",
+                                    "enum": [
+                                      "zoom",
+                                      "google"
+                                    ]
+                                  },
+                                  "status": {
+                                    "type": "string",
+                                    "enum": [
+                                      "scheduled",
+                                      "failed",
+                                      "cancelled"
+                                    ]
+                                  },
+                                  "joinUrl": {
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ]
+                                  },
+                                  "passcode": {
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ]
+                                  },
+                                  "startUrl": {
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ]
+                                  },
+                                  "error": {
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ]
+                                  }
+                                },
+                                "required": [
+                                  "provider",
+                                  "status",
+                                  "joinUrl",
+                                  "passcode"
+                                ],
+                                "additionalProperties": false
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
                           }
                         },
                         "required": [
@@ -58761,7 +59783,8 @@
                           "outcomeNotes",
                           "createdAt",
                           "updatedAt",
-                          "availableActions"
+                          "availableActions",
+                          "onlineMeeting"
                         ],
                         "additionalProperties": false
                       }
@@ -59028,6 +60051,64 @@
                           "cancel"
                         ]
                       }
+                    },
+                    "onlineMeeting": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "provider": {
+                              "type": "string",
+                              "enum": [
+                                "zoom",
+                                "google"
+                              ]
+                            },
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "scheduled",
+                                "failed",
+                                "cancelled"
+                              ]
+                            },
+                            "joinUrl": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "passcode": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "startUrl": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "error": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "provider",
+                            "status",
+                            "joinUrl",
+                            "passcode"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     }
                   },
                   "required": [
@@ -59045,7 +60126,8 @@
                     "outcomeNotes",
                     "createdAt",
                     "updatedAt",
-                    "availableActions"
+                    "availableActions",
+                    "onlineMeeting"
                   ],
                   "additionalProperties": false
                 }
@@ -59249,6 +60331,64 @@
                                 "cancel"
                               ]
                             }
+                          },
+                          "onlineMeeting": {
+                            "anyOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "provider": {
+                                    "type": "string",
+                                    "enum": [
+                                      "zoom",
+                                      "google"
+                                    ]
+                                  },
+                                  "status": {
+                                    "type": "string",
+                                    "enum": [
+                                      "scheduled",
+                                      "failed",
+                                      "cancelled"
+                                    ]
+                                  },
+                                  "joinUrl": {
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ]
+                                  },
+                                  "passcode": {
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ]
+                                  },
+                                  "startUrl": {
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ]
+                                  },
+                                  "error": {
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ]
+                                  }
+                                },
+                                "required": [
+                                  "provider",
+                                  "status",
+                                  "joinUrl",
+                                  "passcode"
+                                ],
+                                "additionalProperties": false
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
                           }
                         },
                         "required": [
@@ -59266,7 +60406,8 @@
                           "outcomeNotes",
                           "createdAt",
                           "updatedAt",
-                          "availableActions"
+                          "availableActions",
+                          "onlineMeeting"
                         ],
                         "additionalProperties": false
                       }
@@ -59561,6 +60702,64 @@
                           "cancel"
                         ]
                       }
+                    },
+                    "onlineMeeting": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "provider": {
+                              "type": "string",
+                              "enum": [
+                                "zoom",
+                                "google"
+                              ]
+                            },
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "scheduled",
+                                "failed",
+                                "cancelled"
+                              ]
+                            },
+                            "joinUrl": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "passcode": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "startUrl": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "error": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "provider",
+                            "status",
+                            "joinUrl",
+                            "passcode"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     }
                   },
                   "required": [
@@ -59578,7 +60777,8 @@
                     "outcomeNotes",
                     "createdAt",
                     "updatedAt",
-                    "availableActions"
+                    "availableActions",
+                    "onlineMeeting"
                   ],
                   "additionalProperties": false
                 }
@@ -59594,6 +60794,7 @@
         "tags": [
           "Meetings"
         ],
+        "description": "Mode `online` with a connected provider (`provider`, default: the school’s default provider) creates the Zoom / Google Meet meeting and puts its join link in `locationOrLink`; without a provider the teacher types the link. A provider failure never blocks the confirmation: `onlineMeeting.status` becomes `failed` and the room can be retried.",
         "requestBody": {
           "required": true,
           "content": {
@@ -59624,6 +60825,20 @@
                   "locationOrLink": {
                     "type": "string",
                     "maxLength": 300
+                  },
+                  "provider": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": [
+                          "zoom",
+                          "google"
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
                   }
                 },
                 "required": [
@@ -59828,6 +61043,64 @@
                           "cancel"
                         ]
                       }
+                    },
+                    "onlineMeeting": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "provider": {
+                              "type": "string",
+                              "enum": [
+                                "zoom",
+                                "google"
+                              ]
+                            },
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "scheduled",
+                                "failed",
+                                "cancelled"
+                              ]
+                            },
+                            "joinUrl": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "passcode": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "startUrl": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "error": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "provider",
+                            "status",
+                            "joinUrl",
+                            "passcode"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     }
                   },
                   "required": [
@@ -59845,7 +61118,8 @@
                     "outcomeNotes",
                     "createdAt",
                     "updatedAt",
-                    "availableActions"
+                    "availableActions",
+                    "onlineMeeting"
                   ],
                   "additionalProperties": false
                 }
@@ -60076,6 +61350,64 @@
                           "cancel"
                         ]
                       }
+                    },
+                    "onlineMeeting": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "provider": {
+                              "type": "string",
+                              "enum": [
+                                "zoom",
+                                "google"
+                              ]
+                            },
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "scheduled",
+                                "failed",
+                                "cancelled"
+                              ]
+                            },
+                            "joinUrl": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "passcode": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "startUrl": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "error": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "provider",
+                            "status",
+                            "joinUrl",
+                            "passcode"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     }
                   },
                   "required": [
@@ -60093,7 +61425,8 @@
                     "outcomeNotes",
                     "createdAt",
                     "updatedAt",
-                    "availableActions"
+                    "availableActions",
+                    "onlineMeeting"
                   ],
                   "additionalProperties": false
                 }
@@ -60137,6 +61470,20 @@
                   "locationOrLink": {
                     "type": "string",
                     "maxLength": 300
+                  },
+                  "provider": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": [
+                          "zoom",
+                          "google"
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
                   }
                 },
                 "required": [
@@ -60341,6 +61688,64 @@
                           "cancel"
                         ]
                       }
+                    },
+                    "onlineMeeting": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "provider": {
+                              "type": "string",
+                              "enum": [
+                                "zoom",
+                                "google"
+                              ]
+                            },
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "scheduled",
+                                "failed",
+                                "cancelled"
+                              ]
+                            },
+                            "joinUrl": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "passcode": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "startUrl": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "error": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "provider",
+                            "status",
+                            "joinUrl",
+                            "passcode"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     }
                   },
                   "required": [
@@ -60358,7 +61763,8 @@
                     "outcomeNotes",
                     "createdAt",
                     "updatedAt",
-                    "availableActions"
+                    "availableActions",
+                    "onlineMeeting"
                   ],
                   "additionalProperties": false
                 }
@@ -60589,6 +61995,64 @@
                           "cancel"
                         ]
                       }
+                    },
+                    "onlineMeeting": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "provider": {
+                              "type": "string",
+                              "enum": [
+                                "zoom",
+                                "google"
+                              ]
+                            },
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "scheduled",
+                                "failed",
+                                "cancelled"
+                              ]
+                            },
+                            "joinUrl": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "passcode": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "startUrl": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "error": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "provider",
+                            "status",
+                            "joinUrl",
+                            "passcode"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     }
                   },
                   "required": [
@@ -60606,7 +62070,8 @@
                     "outcomeNotes",
                     "createdAt",
                     "updatedAt",
-                    "availableActions"
+                    "availableActions",
+                    "onlineMeeting"
                   ],
                   "additionalProperties": false
                 }
@@ -60833,6 +62298,64 @@
                           "cancel"
                         ]
                       }
+                    },
+                    "onlineMeeting": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "provider": {
+                              "type": "string",
+                              "enum": [
+                                "zoom",
+                                "google"
+                              ]
+                            },
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "scheduled",
+                                "failed",
+                                "cancelled"
+                              ]
+                            },
+                            "joinUrl": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "passcode": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "startUrl": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "error": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "provider",
+                            "status",
+                            "joinUrl",
+                            "passcode"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     }
                   },
                   "required": [
@@ -60850,7 +62373,296 @@
                     "outcomeNotes",
                     "createdAt",
                     "updatedAt",
-                    "availableActions"
+                    "availableActions",
+                    "onlineMeeting"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/meetings/{id}/online-meeting/retry": {
+      "post": {
+        "summary": "Retry the meeting’s Zoom / Google Meet room after a failure (create, update or cancel at the provider)",
+        "tags": [
+          "Meetings"
+        ],
+        "description": "Only while `onlineMeeting.status` is `failed`; 409 ONLINE_MEETING_NOT_FAILED otherwise. Failed rooms are also retried automatically every few minutes for a day.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "requested",
+                        "confirmed",
+                        "declined",
+                        "completed",
+                        "cancelled"
+                      ]
+                    },
+                    "student": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "admissionNo": {
+                          "type": "string"
+                        },
+                        "grade": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "section": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "admissionNo",
+                        "grade",
+                        "section"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "teacher": {
+                      "type": "object",
+                      "properties": {
+                        "staffId": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "designation": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "staffId",
+                        "name",
+                        "designation"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "guardian": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "format": "uuid",
+                              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                            },
+                            "name": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "name"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "topic": {
+                      "type": "string"
+                    },
+                    "proposedAt": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "format": "date-time",
+                          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "scheduledAt": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "format": "date-time",
+                          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "durationMin": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "mode": {
+                      "type": "string",
+                      "enum": [
+                        "in_person",
+                        "online",
+                        "phone"
+                      ]
+                    },
+                    "locationOrLink": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "outcomeNotes": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "format": "date-time",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                    },
+                    "availableActions": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": [
+                          "confirm",
+                          "decline",
+                          "reschedule",
+                          "complete",
+                          "cancel"
+                        ]
+                      }
+                    },
+                    "onlineMeeting": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "provider": {
+                              "type": "string",
+                              "enum": [
+                                "zoom",
+                                "google"
+                              ]
+                            },
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "scheduled",
+                                "failed",
+                                "cancelled"
+                              ]
+                            },
+                            "joinUrl": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "passcode": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "startUrl": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "error": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "provider",
+                            "status",
+                            "joinUrl",
+                            "passcode"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "status",
+                    "student",
+                    "teacher",
+                    "guardian",
+                    "topic",
+                    "proposedAt",
+                    "scheduledAt",
+                    "durationMin",
+                    "mode",
+                    "locationOrLink",
+                    "outcomeNotes",
+                    "createdAt",
+                    "updatedAt",
+                    "availableActions",
+                    "onlineMeeting"
                   ],
                   "additionalProperties": false
                 }
@@ -69744,6 +71556,12 @@
                           },
                           "route": {
                             "type": "string"
+                          },
+                          "joinUrl": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
                           }
                         },
                         "required": [
@@ -69760,7 +71578,8 @@
                           "status",
                           "studentId",
                           "entityId",
-                          "route"
+                          "route",
+                          "joinUrl"
                         ],
                         "additionalProperties": false
                       }
@@ -71568,6 +73387,64 @@
                                 "cancel"
                               ]
                             }
+                          },
+                          "onlineMeeting": {
+                            "anyOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "provider": {
+                                    "type": "string",
+                                    "enum": [
+                                      "zoom",
+                                      "google"
+                                    ]
+                                  },
+                                  "status": {
+                                    "type": "string",
+                                    "enum": [
+                                      "scheduled",
+                                      "failed",
+                                      "cancelled"
+                                    ]
+                                  },
+                                  "joinUrl": {
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ]
+                                  },
+                                  "passcode": {
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ]
+                                  },
+                                  "startUrl": {
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ]
+                                  },
+                                  "error": {
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ]
+                                  }
+                                },
+                                "required": [
+                                  "provider",
+                                  "status",
+                                  "joinUrl",
+                                  "passcode"
+                                ],
+                                "additionalProperties": false
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
                           }
                         },
                         "required": [
@@ -71585,7 +73462,8 @@
                           "outcomeNotes",
                           "createdAt",
                           "updatedAt",
-                          "availableActions"
+                          "availableActions",
+                          "onlineMeeting"
                         ],
                         "additionalProperties": false
                       }
@@ -71961,6 +73839,12 @@
                           },
                           "route": {
                             "type": "string"
+                          },
+                          "joinUrl": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
                           }
                         },
                         "required": [
@@ -71977,7 +73861,8 @@
                           "status",
                           "studentId",
                           "entityId",
-                          "route"
+                          "route",
+                          "joinUrl"
                         ],
                         "additionalProperties": false
                       }
@@ -73637,6 +75522,64 @@
                                 "cancel"
                               ]
                             }
+                          },
+                          "onlineMeeting": {
+                            "anyOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "provider": {
+                                    "type": "string",
+                                    "enum": [
+                                      "zoom",
+                                      "google"
+                                    ]
+                                  },
+                                  "status": {
+                                    "type": "string",
+                                    "enum": [
+                                      "scheduled",
+                                      "failed",
+                                      "cancelled"
+                                    ]
+                                  },
+                                  "joinUrl": {
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ]
+                                  },
+                                  "passcode": {
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ]
+                                  },
+                                  "startUrl": {
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ]
+                                  },
+                                  "error": {
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ]
+                                  }
+                                },
+                                "required": [
+                                  "provider",
+                                  "status",
+                                  "joinUrl",
+                                  "passcode"
+                                ],
+                                "additionalProperties": false
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
                           }
                         },
                         "required": [
@@ -73654,7 +75597,8 @@
                           "outcomeNotes",
                           "createdAt",
                           "updatedAt",
-                          "availableActions"
+                          "availableActions",
+                          "onlineMeeting"
                         ],
                         "additionalProperties": false
                       }
@@ -74025,6 +75969,12 @@
                           },
                           "route": {
                             "type": "string"
+                          },
+                          "joinUrl": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
                           }
                         },
                         "required": [
@@ -74041,7 +75991,8 @@
                           "status",
                           "studentId",
                           "entityId",
-                          "route"
+                          "route",
+                          "joinUrl"
                         ],
                         "additionalProperties": false
                       }
@@ -75174,6 +77125,12 @@
                           },
                           "route": {
                             "type": "string"
+                          },
+                          "joinUrl": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
                           }
                         },
                         "required": [
@@ -75190,7 +77147,8 @@
                           "status",
                           "studentId",
                           "entityId",
-                          "route"
+                          "route",
+                          "joinUrl"
                         ],
                         "additionalProperties": false
                       }
@@ -80519,6 +82477,1041 @@
                   },
                   "required": [
                     "deleted"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/meetings": {
+      "get": {
+        "summary": "The school’s Zoom and Google Meet connections and the default provider. Secrets are never returned (`secretSet` only)",
+        "tags": [
+          "Online meetings"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "providers": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "provider": {
+                            "type": "string",
+                            "enum": [
+                              "zoom",
+                              "google"
+                            ]
+                          },
+                          "connected": {
+                            "type": "boolean"
+                          },
+                          "enabled": {
+                            "type": "boolean"
+                          },
+                          "state": {
+                            "type": "string",
+                            "enum": [
+                              "not_connected",
+                              "connected",
+                              "error"
+                            ]
+                          },
+                          "isDefault": {
+                            "type": "boolean"
+                          },
+                          "accountId": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "clientId": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "hostEmail": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "secretSet": {
+                            "type": "boolean"
+                          },
+                          "organizerEmail": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "serviceAccountEmail": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "serviceAccountClientId": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "lastTestAt": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "format": "date-time",
+                                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "lastTestOk": {
+                            "type": [
+                              "boolean",
+                              "null"
+                            ]
+                          },
+                          "lastTestError": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "liveMeetings": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          },
+                          "updatedAt": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "format": "date-time",
+                                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [
+                          "provider",
+                          "connected",
+                          "enabled",
+                          "state",
+                          "isDefault",
+                          "accountId",
+                          "clientId",
+                          "hostEmail",
+                          "secretSet",
+                          "organizerEmail",
+                          "serviceAccountEmail",
+                          "serviceAccountClientId",
+                          "lastTestAt",
+                          "lastTestOk",
+                          "lastTestError",
+                          "liveMeetings",
+                          "updatedAt"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "defaultProvider": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": [
+                            "zoom",
+                            "google"
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "providers",
+                    "defaultProvider"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/meetings/zoom": {
+      "put": {
+        "summary": "Connect or change Zoom (Server-to-Server OAuth app: Account ID, Client ID, Client Secret, host email). `clientSecret` \"\" = keep the saved one (required the first time)",
+        "tags": [
+          "Online meetings"
+        ],
+        "description": "Scopes the Zoom app needs: meeting:write:admin, meeting:read:admin, user:read:admin. The secret is encrypted at rest and write-only.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "accountId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120,
+                    "pattern": "^[\\w.\\-~]+$"
+                  },
+                  "clientId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120,
+                    "pattern": "^[\\w.\\-~]+$"
+                  },
+                  "clientSecret": {
+                    "type": "string",
+                    "maxLength": 200
+                  },
+                  "hostEmail": {
+                    "type": "string",
+                    "maxLength": 254
+                  },
+                  "enabled": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "accountId",
+                  "clientId",
+                  "clientSecret",
+                  "hostEmail"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "providers": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "provider": {
+                            "type": "string",
+                            "enum": [
+                              "zoom",
+                              "google"
+                            ]
+                          },
+                          "connected": {
+                            "type": "boolean"
+                          },
+                          "enabled": {
+                            "type": "boolean"
+                          },
+                          "state": {
+                            "type": "string",
+                            "enum": [
+                              "not_connected",
+                              "connected",
+                              "error"
+                            ]
+                          },
+                          "isDefault": {
+                            "type": "boolean"
+                          },
+                          "accountId": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "clientId": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "hostEmail": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "secretSet": {
+                            "type": "boolean"
+                          },
+                          "organizerEmail": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "serviceAccountEmail": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "serviceAccountClientId": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "lastTestAt": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "format": "date-time",
+                                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "lastTestOk": {
+                            "type": [
+                              "boolean",
+                              "null"
+                            ]
+                          },
+                          "lastTestError": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "liveMeetings": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          },
+                          "updatedAt": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "format": "date-time",
+                                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [
+                          "provider",
+                          "connected",
+                          "enabled",
+                          "state",
+                          "isDefault",
+                          "accountId",
+                          "clientId",
+                          "hostEmail",
+                          "secretSet",
+                          "organizerEmail",
+                          "serviceAccountEmail",
+                          "serviceAccountClientId",
+                          "lastTestAt",
+                          "lastTestOk",
+                          "lastTestError",
+                          "liveMeetings",
+                          "updatedAt"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "defaultProvider": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": [
+                            "zoom",
+                            "google"
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "providers",
+                    "defaultProvider"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/meetings/google": {
+      "put": {
+        "summary": "Connect or change Google Meet (Google Workspace service account with domain-wide delegation + the organizer to act for). `serviceAccountJson` \"\" = keep the saved key (required the first time)",
+        "tags": [
+          "Online meetings"
+        ],
+        "description": "The key file must be of type service_account with client_email and private_key. A personal Gmail account cannot use this. A Workspace admin must authorise the service account’s Client ID for the https://www.googleapis.com/auth/calendar.events scope. The key is encrypted at rest and write-only.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "serviceAccountJson": {
+                    "type": "string",
+                    "maxLength": 20000
+                  },
+                  "organizerEmail": {
+                    "type": "string",
+                    "maxLength": 254
+                  },
+                  "enabled": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "serviceAccountJson",
+                  "organizerEmail"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "providers": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "provider": {
+                            "type": "string",
+                            "enum": [
+                              "zoom",
+                              "google"
+                            ]
+                          },
+                          "connected": {
+                            "type": "boolean"
+                          },
+                          "enabled": {
+                            "type": "boolean"
+                          },
+                          "state": {
+                            "type": "string",
+                            "enum": [
+                              "not_connected",
+                              "connected",
+                              "error"
+                            ]
+                          },
+                          "isDefault": {
+                            "type": "boolean"
+                          },
+                          "accountId": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "clientId": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "hostEmail": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "secretSet": {
+                            "type": "boolean"
+                          },
+                          "organizerEmail": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "serviceAccountEmail": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "serviceAccountClientId": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "lastTestAt": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "format": "date-time",
+                                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "lastTestOk": {
+                            "type": [
+                              "boolean",
+                              "null"
+                            ]
+                          },
+                          "lastTestError": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "liveMeetings": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          },
+                          "updatedAt": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "format": "date-time",
+                                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [
+                          "provider",
+                          "connected",
+                          "enabled",
+                          "state",
+                          "isDefault",
+                          "accountId",
+                          "clientId",
+                          "hostEmail",
+                          "secretSet",
+                          "organizerEmail",
+                          "serviceAccountEmail",
+                          "serviceAccountClientId",
+                          "lastTestAt",
+                          "lastTestOk",
+                          "lastTestError",
+                          "liveMeetings",
+                          "updatedAt"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "defaultProvider": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": [
+                            "zoom",
+                            "google"
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "providers",
+                    "defaultProvider"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/meetings/{provider}": {
+      "delete": {
+        "summary": "Disconnect a provider (its credentials are deleted). Meetings already created there stay there",
+        "tags": [
+          "Online meetings"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "zoom",
+                "google"
+              ]
+            },
+            "in": "path",
+            "name": "provider",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "providers": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "provider": {
+                            "type": "string",
+                            "enum": [
+                              "zoom",
+                              "google"
+                            ]
+                          },
+                          "connected": {
+                            "type": "boolean"
+                          },
+                          "enabled": {
+                            "type": "boolean"
+                          },
+                          "state": {
+                            "type": "string",
+                            "enum": [
+                              "not_connected",
+                              "connected",
+                              "error"
+                            ]
+                          },
+                          "isDefault": {
+                            "type": "boolean"
+                          },
+                          "accountId": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "clientId": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "hostEmail": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "secretSet": {
+                            "type": "boolean"
+                          },
+                          "organizerEmail": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "serviceAccountEmail": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "serviceAccountClientId": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "lastTestAt": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "format": "date-time",
+                                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "lastTestOk": {
+                            "type": [
+                              "boolean",
+                              "null"
+                            ]
+                          },
+                          "lastTestError": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "liveMeetings": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          },
+                          "updatedAt": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "format": "date-time",
+                                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [
+                          "provider",
+                          "connected",
+                          "enabled",
+                          "state",
+                          "isDefault",
+                          "accountId",
+                          "clientId",
+                          "hostEmail",
+                          "secretSet",
+                          "organizerEmail",
+                          "serviceAccountEmail",
+                          "serviceAccountClientId",
+                          "lastTestAt",
+                          "lastTestOk",
+                          "lastTestError",
+                          "liveMeetings",
+                          "updatedAt"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "defaultProvider": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": [
+                            "zoom",
+                            "google"
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "providers",
+                    "defaultProvider"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/meetings/default": {
+      "put": {
+        "summary": "Choose the provider used when a meeting is scheduled without picking one (must be connected and switched on)",
+        "tags": [
+          "Online meetings"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "provider": {
+                    "type": "string",
+                    "enum": [
+                      "zoom",
+                      "google"
+                    ]
+                  }
+                },
+                "required": [
+                  "provider"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "providers": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "provider": {
+                            "type": "string",
+                            "enum": [
+                              "zoom",
+                              "google"
+                            ]
+                          },
+                          "connected": {
+                            "type": "boolean"
+                          },
+                          "enabled": {
+                            "type": "boolean"
+                          },
+                          "state": {
+                            "type": "string",
+                            "enum": [
+                              "not_connected",
+                              "connected",
+                              "error"
+                            ]
+                          },
+                          "isDefault": {
+                            "type": "boolean"
+                          },
+                          "accountId": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "clientId": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "hostEmail": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "secretSet": {
+                            "type": "boolean"
+                          },
+                          "organizerEmail": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "serviceAccountEmail": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "serviceAccountClientId": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "lastTestAt": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "format": "date-time",
+                                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "lastTestOk": {
+                            "type": [
+                              "boolean",
+                              "null"
+                            ]
+                          },
+                          "lastTestError": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "liveMeetings": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          },
+                          "updatedAt": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "format": "date-time",
+                                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [
+                          "provider",
+                          "connected",
+                          "enabled",
+                          "state",
+                          "isDefault",
+                          "accountId",
+                          "clientId",
+                          "hostEmail",
+                          "secretSet",
+                          "organizerEmail",
+                          "serviceAccountEmail",
+                          "serviceAccountClientId",
+                          "lastTestAt",
+                          "lastTestOk",
+                          "lastTestError",
+                          "liveMeetings",
+                          "updatedAt"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "defaultProvider": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": [
+                            "zoom",
+                            "google"
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "providers",
+                    "defaultProvider"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/meetings/{provider}/test": {
+      "post": {
+        "summary": "Test the saved connection: sign in and make one harmless read (Zoom: token + the host user; Google: token + a one-event calendar listing). Nothing is created",
+        "tags": [
+          "Online meetings"
+        ],
+        "description": "Answers 200 with { ok, error, detail }: the error is plain language and sanitised. 5 tests per hour per school (429 beyond that), 10 s timeout per provider call.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "zoom",
+                "google"
+              ]
+            },
+            "in": "path",
+            "name": "provider",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean"
+                    },
+                    "error": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "detail": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "testedAt": {
+                      "type": "string",
+                      "format": "date-time",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                    }
+                  },
+                  "required": [
+                    "ok",
+                    "error",
+                    "detail",
+                    "testedAt"
                   ],
                   "additionalProperties": false
                 }

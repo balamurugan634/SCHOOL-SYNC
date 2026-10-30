@@ -4,6 +4,7 @@ import { ANNOUNCEMENT_PRIORITIES, AUDIENCE_TARGET_TYPES, EVENT_KINDS, MEETING_ST
 import { createdAt, pk, ts, updatedAt } from './_helpers';
 import { staff, students, guardians } from './people';
 import { users } from './identity';
+import { onlineColumns } from './online-meetings';
 import type { AttachmentRef } from './learning';
 
 /** Who an announcement/event is for. No rows + audienceAll=false → nobody (draft). */
@@ -131,10 +132,15 @@ export const events = pgTable(
       .notNull()
       .default('published'),
     createdBy: uuid('created_by'),
+    ...onlineColumns(),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
-  (t) => [index('events_start_idx').on(t.startDate, t.endDate), index('events_kind_idx').on(t.kind, t.startDate)],
+  (t) => [
+    index('events_start_idx').on(t.startDate, t.endDate),
+    index('events_kind_idx').on(t.kind, t.startDate),
+    index('events_online_idx').on(t.onlineStatus, t.startDate).where(sql`${t.onlineProvider} is not null or ${t.onlineRemoteProvider} is not null`),
+  ],
 );
 
 export const eventRegistrations = pgTable(
@@ -179,8 +185,13 @@ export const meetings = pgTable(
     status: text('status', { enum: MEETING_STATUSES }).notNull().default('requested'),
     outcomeNotes: text('outcome_notes'),
     decidedBy: uuid('decided_by'),
+    ...onlineColumns(),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
-  (t) => [index('meetings_staff_idx').on(t.staffId, t.status, t.scheduledAt), index('meetings_student_idx').on(t.studentId, t.createdAt.desc())],
+  (t) => [
+    index('meetings_staff_idx').on(t.staffId, t.status, t.scheduledAt),
+    index('meetings_student_idx').on(t.studentId, t.createdAt.desc()),
+    index('meetings_online_idx').on(t.onlineStatus, t.scheduledAt).where(sql`${t.onlineProvider} is not null or ${t.onlineRemoteProvider} is not null`),
+  ],
 );

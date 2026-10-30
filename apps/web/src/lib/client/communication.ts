@@ -13,6 +13,7 @@ import type {
   EventUpdateBody,
   MeetingItem,
   NotificationPreferences,
+  OnlineProvider,
   announcementRecipient,
   eventResponseRow,
   notificationPreferencesUpdateBody,
@@ -54,15 +55,19 @@ export const useCreateEvent = () => useApiMutation<EventCreateBody, EventItem>({
 export const useUpdateEvent = () => useApiMutation<{ id: string; body: EventUpdateBody }, EventItem>({ method: 'PATCH', path: (v) => `/events/${v.id}`, body: (v) => v.body, invalidate: EVT });
 export const useEventAction = () => useApiMutation<{ id: string; action: 'publish' | 'cancel' }, EventItem>({ path: (v) => `/events/${v.id}/${v.action}`, invalidate: EVT });
 export const useDeleteEvent = () => useApiMutation<{ id: string }, { ok: true } | null>({ method: 'DELETE', path: (v) => `/events/${v.id}`, invalidate: EVT });
+/** Retry the event's Zoom / Google Meet meeting after a failure. */
+export const useRetryEventOnline = () => useApiMutation<{ id: string }, EventItem>({ path: (v) => `/events/${v.id}/online-meeting/retry`, invalidate: EVT });
 
 // ── meetings ────────────────────────────────────────────────────────────────────────────────
 export const useMeetings = (query: Query, enabled = true) => usePagedQuery<MeetingItem>(['meetings', 'list'], '/meetings', query, { enabled });
 export type MeetingActionVars =
-  | { id: string; action: 'confirm'; scheduledAt: string; durationMin: number; mode: 'in_person' | 'online' | 'phone'; locationOrLink?: string }
-  | { id: string; action: 'reschedule'; scheduledAt: string; durationMin?: number; mode?: 'in_person' | 'online' | 'phone'; locationOrLink?: string }
+  | { id: string; action: 'confirm'; scheduledAt: string; durationMin: number; mode: 'in_person' | 'online' | 'phone'; locationOrLink?: string; provider?: OnlineProvider | null }
+  | { id: string; action: 'reschedule'; scheduledAt: string; durationMin?: number; mode?: 'in_person' | 'online' | 'phone'; locationOrLink?: string; provider?: OnlineProvider | null }
   | { id: string; action: 'decline'; reason: string }
   | { id: string; action: 'complete'; outcomeNotes: string }
   | { id: string; action: 'cancel'; reason?: string };
+/** Retry a parent–teacher meeting's Zoom / Google Meet room after a failure. */
+export const useRetryMeetingOnline = () => useApiMutation<{ id: string }, MeetingItem>({ path: (v) => `/meetings/${v.id}/online-meeting/retry`, invalidate: [['meetings'], ['dashboard'], ['calendar']] });
 export const useMeetingAction = () =>
   useApiMutation<MeetingActionVars, MeetingItem>({
     path: (v) => `/meetings/${v.id}/${v.action}`,

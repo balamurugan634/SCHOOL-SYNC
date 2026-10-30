@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Download } from 'lucide-react';
 import { EVENT_RESPONSES, type EventItem } from '@school-sync/shared';
-import { useDeleteEvent, useEvent, useEventAction, useEventResponses, type EventResponseRow } from '@/lib/client/communication';
+import { useDeleteEvent, useEvent, useEventAction, useEventResponses, useRetryEventOnline, type EventResponseRow } from '@/lib/client/communication';
 import { bff } from '@/lib/client/fetcher';
 import { friendlyError, useSectionList, type Paged } from '@/lib/client/mgmt';
 import { downloadCsv, toCsv } from '@/lib/csv';
@@ -23,6 +23,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { StatTile } from '@/components/ui/stat-tile';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/components/ui/toaster';
+import { JoinCard, JoinFor, providerLabel } from '../../online-meeting/online-meeting';
 import { AsyncConfirm } from '../common/dialogs';
 import { FilterBar, FilterSelect, SearchBox } from '../common/filters';
 import { GuardedButton } from '../common/guarded';
@@ -43,8 +44,12 @@ export function EventDetail({ id }: { id: string }) {
   const [tab, setTab] = useTabParam(responses ? ['details', 'responses'] : ['details']);
   const action = useEventAction();
   const del = useDeleteEvent();
+  const retry = useRetryEventOnline();
   const [dlg, setDlg] = React.useState<'publish' | 'cancel' | 'delete' | null>(null);
   const editable = !!ev && ev.canManage && ev.status !== 'cancelled';
+  // a live or half-made meeting at the provider is cancelled together with the event
+  const liveMeeting = ev?.onlineMeeting && ev.onlineMeeting.status !== 'cancelled' ? ev.onlineMeeting : null;
+  const meetingNote = liveMeeting ? ` The ${providerLabel(liveMeeting.provider)} meeting is cancelled too, so its link stops working.` : '';
 
   return (
     <>
@@ -56,6 +61,7 @@ export function EventDetail({ id }: { id: string }) {
           ev && (
             <>
               <StatusChip status={ev.status} />
+              {ev.status === 'published' && <JoinFor meeting={ev.onlineMeeting} size="md" variant="primary" stop={false} />}
               {ev.canManage && ev.status === 'draft' && (
                 <GuardedButton blocked={writeBlock('events:publish')} onClick={() => setDlg('publish')}>
                   Publish
@@ -92,6 +98,21 @@ export function EventDetail({ id }: { id: string }) {
           </TabsList>
           <TabsContent value="details">
             {ev.status === 'cancelled' && <Banner tone="warning" className="mb-6">This event was cancelled. It stays on the calendar marked as cancelled, and its audience was told.</Banner>}
+            {(ev.onlineMeeting || (ev.onlineProvider && ev.canManage)) && (
+              <JoinCard
+                className="mb-6 max-w-3xl"
+                meeting={ev.onlineMeeting}
+                chosen={ev.onlineProvider}
+                canEdit={ev.canManage}
+                retrying={retry.isPending}
+                onRetry={() =>
+                  void retry.mutateAsync({ id: ev.id }).then(
+                    (r) => (r.onlineMeeting?.status === 'scheduled' ? toast.success('The online meeting is set up') : toast.error('Still not working', { description: r.onlineMeeting?.error ?? 'Try again in a few minutes.' })),
+                    (e) => toast.error('Couldn’t retry', { description: friendlyError(e) }),
+                  )
+                }
+              />
+            )}
             {editable ? (
               <div className="max-w-3xl">
                 <EventForm event={ev} onSaved={() => void q.refetch()} />
@@ -122,7 +143,7 @@ export function EventDetail({ id }: { id: string }) {
         open={dlg === 'cancel'}
         onOpenChange={(o) => !o && setDlg(null)}
         title={`Cancel “${ev?.title ?? ''}”?`}
-        description="It stays on the calendar marked as cancelled, registrations are closed and the audience is notified. This cannot be undone."
+        description={`It stays on the calendar marked as cancelled, registrations are closed and the audience is notified.${meetingNote} This cannot be undone.`}
         confirmLabel="Cancel the event"
         destructive
         onConfirm={async () => {
@@ -134,7 +155,7 @@ export function EventDetail({ id }: { id: string }) {
         open={dlg === 'delete'}
         onOpenChange={(o) => !o && setDlg(null)}
         title={`Delete “${ev?.title ?? ''}”?`}
-        description="A draft is removed completely. A published event can only be deleted while nobody has responded; otherwise cancel it instead."
+        description={`A draft is removed completely. A published event can only be deleted while nobody has responded; otherwise cancel it instead.${meetingNote}`}
         confirmLabel="Delete event"
         destructive
         onConfirm={async () => {

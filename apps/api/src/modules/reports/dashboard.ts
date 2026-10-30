@@ -117,7 +117,7 @@ export async function parentDashboard(ctx: Ctx, wantedStudentId?: string): Promi
   const { db, tenant, p } = ctx;
   const today = todayIn(tenant.timezone);
   const blocks = await commonBlocks(ctx, today);
-  const meetings = await upcomingMeetings(db, p, 3);
+  const meetings = await upcomingMeetings(db, p, 3, tenant.id);
   const empty: ParentDashboard = { date: today, selectedStudentId: null, children: [], child: null, fees: null, meetings, pendingLeaveCount: 0, ...blocks };
   const ids = p.linkedStudentIds; // verified links only
   if (!ids.length) return empty;
@@ -219,7 +219,7 @@ export async function teacherDashboard(ctx: Ctx): Promise<TeacherDashboard> {
       .orderBy(asc(exams.startDate))
       .limit(50),
     p.classTeacherSectionIds.length ? db.select({ n: nowCount }).from(leaveRequests).where(and(inArray(leaveRequests.sectionId, p.classTeacherSectionIds), eq(leaveRequests.status, 'pending'))) : Promise.resolve([{ n: 0 }]),
-    upcomingMeetings(db, p, 3),
+    upcomingMeetings(db, p, 3, tenant.id),
   ]);
   return {
     date: today,

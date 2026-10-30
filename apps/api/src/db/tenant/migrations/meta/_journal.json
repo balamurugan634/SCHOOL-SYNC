@@ -15,6 +15,13 @@
       "when": 1792778017009,
       "tag": "0001_email_accounts_queue",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793358030556,
+      "tag": "0002_online_meetings",
+      "breakpoints": true
     }
   ]
 }

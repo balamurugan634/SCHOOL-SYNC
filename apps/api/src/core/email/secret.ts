@@ -9,20 +9,21 @@ import { deriveKey } from '../crypto';
  * as GCM additional data, so a ciphertext copied to another row (or school) fails authentication.
  * Format: v1.<iv>.<tag>.<ciphertext> (base64url). Never log, return or audit either side of this function.
  */
-const keyFor = (tenantId: string): Uint8Array => deriveKey(config.APP_ENCRYPTION_KEY, `email-secret:${tenantId}`);
+/** `purpose` separates the keys of unrelated features (default: email, so existing ciphertexts stay readable). */
+const keyFor = (tenantId: string, purpose = 'email-secret'): Uint8Array => deriveKey(config.APP_ENCRYPTION_KEY, `${purpose}:${tenantId}`);
 
-export function sealForTenant(plain: string, tenantId: string, bindTo: string): string {
+export function sealForTenant(plain: string, tenantId: string, bindTo: string, purpose?: string): string {
   const iv = randomBytes(12);
-  const c = createCipheriv('aes-256-gcm', keyFor(tenantId), iv);
+  const c = createCipheriv('aes-256-gcm', keyFor(tenantId, purpose), iv);
   c.setAAD(Buffer.from(bindTo, 'utf8'));
   const ct = Buffer.concat([c.update(plain, 'utf8'), c.final()]);
   return ['v1', iv.toString('base64url'), c.getAuthTag().toString('base64url'), ct.toString('base64url')].join('.');
 }
 
-export function openForTenant(boxed: string, tenantId: string, bindTo: string): string {
+export function openForTenant(boxed: string, tenantId: string, bindTo: string, purpose?: string): string {
   const [v, iv, tag, ct] = boxed.split('.');
   if (v !== 'v1' || !iv || !tag || ct === undefined) throw new Error('Bad secret box');
-  const d = createDecipheriv('aes-256-gcm', keyFor(tenantId), Buffer.from(iv, 'base64url'));
+  const d = createDecipheriv('aes-256-gcm', keyFor(tenantId, purpose), Buffer.from(iv, 'base64url'));
   d.setAAD(Buffer.from(bindTo, 'utf8'));
   d.setAuthTag(Buffer.from(tag, 'base64url'));
   return Buffer.concat([d.update(Buffer.from(ct, 'base64url')), d.final()]).toString('utf8');

@@ -1,8 +1,9 @@
 import { and, asc, count, desc, eq, gte, inArray, lte, or, sql, type SQL } from 'drizzle-orm';
-import type { MeetingAction, MeetingItem } from '@school-sync/shared';
+import type { MeetingAction, MeetingItem, OnlineProvider } from '@school-sync/shared';
 import { audit, type AuditActor } from '../../core/audit';
 import { conflict, forbidden, notFound, unprocessable } from '../../core/errors';
 import { notify } from '../../core/notify';
+import { assertProviderUsable, defaultProvider, presentOnline, syncOnline } from '../../core/online-meetings';
 import type { Principal } from '../../core/rbac/principal';
 import { assertStudentAccess, studentIdScope } from '../../core/rbac/scope';
 import type { Executor } from '../../core/tenancy/pools';
@@ -93,7 +94,7 @@ const select = (db: Executor) =>
 
 type Joined = Awaited<ReturnType<ReturnType<typeof select>['execute']>>[number];
 
-function toItem(r: Joined, p: Principal): MeetingItem {
+function toItem(r: Joined, p: Principal, tenantId?: string): MeetingItem {
   const m = r.m;
   return {
     id: m.id,
@@ -111,10 +112,11 @@ function toItem(r: Joined, p: Principal): MeetingItem {
     createdAt: m.createdAt.toISOString(),
     updatedAt: m.updatedAt.toISOString(),
     availableActions: actionsFor(p, m, r.sectionId),
+    onlineMeeting: presentOnline(m, 'meeting', { canEdit: canDecide(p, m, r.sectionId), tenantId }),
   };
 }
 
-export async function listMeetings(db: Executor, p: Principal, q: { page: number; pageSize: number; q?: string; status?: Row['status']; studentId?: string; from?: string; to?: string }) {
+export async function listMeetings(db: Executor, p: Principal, q: { page: number; pageSize: number; q?: string; status?: Row['status']; studentId?: string; from?: string; to?: string }, tenantId?: string) {
   const where = and(
     scopeCond(p),
     q.status ? eq(meetings.status, q.status) : undefined,
@@ -127,17 +129,17 @@ export async function listMeetings(db: Executor, p: Principal, q: { page: number
     select(db).where(where).orderBy(desc(meetings.createdAt), desc(meetings.id)).limit(q.pageSize).offset((q.page - 1) * q.pageSize),
     db.select({ n: count() }).from(meetings).where(where),
   ]);
-  return { items: rows.map((r) => toItem(r, p)), total: totalRow[0]?.n ?? 0 };
+  return { items: rows.map((r) => toItem(r, p, tenantId)), total: totalRow[0]?.n ?? 0 };
 }
 
 /** Confirmed meetings from now on (soonest first), plus requests still waiting for an answer. */
-export async function upcoming(db: Executor, p: Principal, limit = 20): Promise<MeetingItem[]> {
+export async function upcoming(db: Executor, p: Principal, limit = 20, tenantId?: string): Promise<MeetingItem[]> {
   const now = new Date();
   const rows = await select(db)
     .where(and(scopeCond(p), or(and(eq(meetings.status, 'confirmed'), gte(meetings.scheduledAt, now)), eq(meetings.status, 'requested'))))
     .orderBy(sql`case when ${meetings.status} = 'confirmed' then 0 else 1 end`, asc(meetings.scheduledAt), desc(meetings.createdAt))
     .limit(limit);
-  return rows.map((r) => toItem(r, p));
+  return rows.map((r) => toItem(r, p, tenantId));
 }
 
 async function load(db: Executor, p: Principal, id: string): Promise<Joined> {
@@ -145,8 +147,8 @@ async function load(db: Executor, p: Principal, id: string): Promise<Joined> {
   if (!r) throw notFound('Meeting');
   return r;
 }
-export async function getMeeting(db: Executor, p: Principal, id: string): Promise<MeetingItem> {
-  return toItem(await load(db, p, id), p);
+export async function getMeeting(db: Executor, p: Principal, id: string, tenantId?: string): Promise<MeetingItem> {
+  return toItem(await load(db, p, id), p, tenantId);
 }
 
 /** Teachers a parent may ask for a meeting about this child: the class teacher and everyone teaching the section. */
@@ -216,7 +218,7 @@ export async function requestMeeting(db: Executor, tenant: TenantInfo, p: Princi
   });
   const teacherUser = await userIdOfStaff(db, body.staffId);
   await notifyMeeting(db, tenant, teacherUser ? [teacherUser] : [], 'meeting.requested', 'New meeting request', created.id);
-  return getMeeting(db, p, created.id);
+  return getMeeting(db, p, created.id, tenant.id);
 }
 
 interface Slot {
@@ -224,15 +226,30 @@ interface Slot {
   durationMin?: number;
   mode?: Row['mode'];
   locationOrLink?: string;
+  /** zoom / google: the provider creates the meeting; null: the teacher types a link; omitted: keep the meeting's provider, or use the school's default */
+  provider?: OnlineProvider | null;
 }
 
-function resolveSlot(base: Pick<Row, 'durationMin' | 'mode' | 'locationOrLink'>, slot: Slot): { scheduledAt: Date; durationMin: number; mode: Row['mode']; locationOrLink: string | null } {
+/** Which provider (if any) handles an online meeting. Only `online` meetings have one. */
+async function chooseProvider(db: Executor, base: Pick<Row, 'mode' | 'onlineProvider'>, mode: Row['mode'], requested: OnlineProvider | null | undefined): Promise<OnlineProvider | null> {
+  if (mode !== 'online' || requested === null) return null;
+  if (requested) {
+    if (requested !== base.onlineProvider) await assertProviderUsable(db, requested, 'provider');
+    return requested;
+  }
+  if (base.mode === 'online') return base.onlineProvider; // rescheduling: keep what the meeting already has
+  return defaultProvider(db); // null when nothing is connected: the teacher types a link, as before
+}
+
+async function resolveSlot(db: Executor, base: Pick<Row, 'durationMin' | 'mode' | 'locationOrLink' | 'onlineProvider'>, slot: Slot): Promise<{ scheduledAt: Date; durationMin: number; mode: Row['mode']; locationOrLink: string | null; onlineProvider: OnlineProvider | null }> {
   const scheduledAt = new Date(slot.scheduledAt);
   if (scheduledAt.getTime() < Date.now() - 60_000) throw unprocessable('Choose a time in the future', 'SCHEDULED_AT_IN_PAST');
   const mode = slot.mode ?? base.mode;
+  const onlineProvider = await chooseProvider(db, base, mode, slot.provider);
   const locationOrLink = slot.locationOrLink ?? (slot.mode && slot.mode !== base.mode ? null : base.locationOrLink);
-  if (mode === 'online' && !locationOrLink) throw unprocessable('An online meeting needs a link', 'MEETING_LINK_REQUIRED');
-  return { scheduledAt, durationMin: slot.durationMin ?? base.durationMin, mode, locationOrLink };
+  // a provider creates the link itself; without one the teacher has to give it
+  if (mode === 'online' && !onlineProvider && !locationOrLink) throw unprocessable('An online meeting needs a link', 'MEETING_LINK_REQUIRED');
+  return { scheduledAt, durationMin: slot.durationMin ?? base.durationMin, mode, locationOrLink, onlineProvider };
 }
 
 /** Lock the teacher's calendar and make sure no other confirmed meeting overlaps the slot. */
@@ -247,20 +264,24 @@ async function assertSlotFree(tx: Executor, staffId: string, meetingId: string, 
   if (clash) throw conflict('The teacher already has a meeting at that time', 'MEETING_SLOT_TAKEN');
 }
 
-export async function confirm(db: Executor, tenant: TenantInfo, p: Principal, actor: AuditActor, id: string, body: Slot): Promise<MeetingItem> {
+type Log = { error(o: unknown, m?: string): void };
+const syncMeeting = (db: Executor, tenant: TenantInfo, actor: AuditActor, id: string, log?: Log) => syncOnline(tenant, db, 'meeting', id, { actor, log });
+
+export async function confirm(db: Executor, tenant: TenantInfo, p: Principal, actor: AuditActor, id: string, body: Slot, log?: Log): Promise<MeetingItem> {
   const m = await db.transaction(async (tx) => {
     const r = await load(tx, p, id);
     const m = r.m;
     if (!canDecide(p, m, r.sectionId)) throw forbidden('Only the teacher, the class teacher or the school office can confirm');
     if (m.status !== 'requested') throw conflict(`A ${m.status} meeting cannot be confirmed`, 'MEETING_INVALID_STATE');
-    const slot = resolveSlot(m, body);
+    const slot = await resolveSlot(tx, m, body);
     await assertSlotFree(tx, m.staffId, id, slot);
     await tx.update(meetings).set({ status: 'confirmed', ...slot, decidedBy: p.userId }).where(eq(meetings.id, id));
     await audit(tx, actor, { action: 'meeting.confirm', entity: 'meeting', entityId: id, before: { status: m.status }, after: { status: 'confirmed', ...slot } });
     return m;
   });
+  await syncMeeting(db, tenant, actor, id, log); // the provider meeting exists (or its failure is recorded) before the parent is told
   await notifyMeeting(db, tenant, await requesterRecipient(db, m), 'meeting.confirmed', 'Meeting confirmed', id);
-  return getMeeting(db, p, id);
+  return getMeeting(db, p, id, tenant.id);
 }
 
 export async function decline(db: Executor, tenant: TenantInfo, p: Principal, actor: AuditActor, id: string, reason: string): Promise<MeetingItem> {
@@ -273,36 +294,39 @@ export async function decline(db: Executor, tenant: TenantInfo, p: Principal, ac
     return r.m;
   });
   await notifyMeeting(db, tenant, await requesterRecipient(db, m), 'meeting.declined', 'Meeting request declined', id);
-  return getMeeting(db, p, id);
+  return getMeeting(db, p, id, tenant.id);
 }
 
-export async function reschedule(db: Executor, tenant: TenantInfo, p: Principal, actor: AuditActor, id: string, body: Slot): Promise<MeetingItem> {
+export async function reschedule(db: Executor, tenant: TenantInfo, p: Principal, actor: AuditActor, id: string, body: Slot, log?: Log): Promise<MeetingItem> {
   const m = await db.transaction(async (tx) => {
     const r = await load(tx, p, id);
     if (!canDecide(p, r.m, r.sectionId)) throw forbidden('Only the teacher, the class teacher or the school office can reschedule');
     if (r.m.status !== 'confirmed') throw conflict('Only a confirmed meeting can be rescheduled', 'MEETING_INVALID_STATE');
-    const slot = resolveSlot(r.m, body);
+    const slot = await resolveSlot(tx, r.m, body);
     await assertSlotFree(tx, r.m.staffId, id, slot);
     await tx.update(meetings).set({ ...slot, decidedBy: p.userId }).where(eq(meetings.id, id));
     await audit(tx, actor, { action: 'meeting.reschedule', entity: 'meeting', entityId: id, before: { scheduledAt: r.m.scheduledAt, mode: r.m.mode }, after: slot });
     return r.m;
   });
+  await syncMeeting(db, tenant, actor, id, log); // moves / switches / cancels the provider meeting to match
   await notifyMeeting(db, tenant, await requesterRecipient(db, m), 'meeting.rescheduled', 'Meeting rescheduled', id);
-  return getMeeting(db, p, id);
+  return getMeeting(db, p, id, tenant.id);
 }
 
-export async function complete(db: Executor, p: Principal, actor: AuditActor, id: string, outcomeNotes: string): Promise<MeetingItem> {
+export async function complete(db: Executor, tenant: TenantInfo, p: Principal, actor: AuditActor, id: string, outcomeNotes: string, log?: Log): Promise<MeetingItem> {
   await db.transaction(async (tx) => {
     const r = await load(tx, p, id);
     if (!canDecide(p, r.m, r.sectionId)) throw forbidden('Only the teacher, the class teacher or the school office can complete a meeting');
     if (r.m.status !== 'confirmed') throw conflict('Only a confirmed meeting can be completed', 'MEETING_INVALID_STATE');
-    await tx.update(meetings).set({ status: 'completed', outcomeNotes, decidedBy: p.userId }).where(eq(meetings.id, id));
+    // a finished meeting no longer needs its room at the provider: no provider wanted from now on (the sync below removes it)
+    await tx.update(meetings).set({ status: 'completed', outcomeNotes, decidedBy: p.userId, onlineProvider: null }).where(eq(meetings.id, id));
     await audit(tx, actor, { action: 'meeting.complete', entity: 'meeting', entityId: id, before: { status: r.m.status }, after: { status: 'completed' } });
   });
-  return getMeeting(db, p, id);
+  await syncMeeting(db, tenant, actor, id, log);
+  return getMeeting(db, p, id, tenant.id);
 }
 
-export async function cancel(db: Executor, tenant: TenantInfo, p: Principal, actor: AuditActor, id: string, reason?: string): Promise<MeetingItem> {
+export async function cancel(db: Executor, tenant: TenantInfo, p: Principal, actor: AuditActor, id: string, reason?: string, log?: Log): Promise<MeetingItem> {
   const { m, byRequester } = await db.transaction(async (tx) => {
     const r = await load(tx, p, id);
     const requester = r.m.requestedBy === p.userId;
@@ -312,11 +336,23 @@ export async function cancel(db: Executor, tenant: TenantInfo, p: Principal, act
     await audit(tx, actor, { action: 'meeting.cancel', entity: 'meeting', entityId: id, before: { status: r.m.status }, after: { status: 'cancelled', reason } });
     return { m: r.m, byRequester: requester };
   });
+  await syncMeeting(db, tenant, actor, id, log); // cancels the provider meeting (a failure is recorded and retried; the cancellation itself stands)
   if (byRequester) {
     const teacherUser = await userIdOfStaff(db, m.staffId);
     await notifyMeeting(db, tenant, teacherUser ? [teacherUser] : [], 'meeting.cancelled', 'Meeting cancelled', id);
   } else {
     await notifyMeeting(db, tenant, await requesterRecipient(db, m), 'meeting.cancelled', 'Meeting cancelled', id);
   }
-  return getMeeting(db, p, id);
+  return getMeeting(db, p, id, tenant.id);
+}
+
+/** Retry button: finish creating, updating or cancelling the meeting's online room (only while it is in the `failed` state). */
+export async function retryOnline(db: Executor, tenant: TenantInfo, p: Principal, actor: AuditActor, id: string, log?: Log): Promise<MeetingItem> {
+  const r = await load(db, p, id);
+  if (!canDecide(p, r.m, r.sectionId)) throw forbidden('Only the teacher, the class teacher or the school office can retry the online meeting');
+  if (r.m.onlineStatus !== 'failed') throw conflict('There is nothing to retry for this meeting’s online room', 'ONLINE_MEETING_NOT_FAILED');
+  await audit(db, actor, { action: 'meeting.online_retry', entity: 'meeting', entityId: id });
+  const outcome = await syncOnline(tenant, db, 'meeting', id, { manual: true, actor, log });
+  if (outcome === 'busy') throw conflict('The online meeting is being updated right now. Try again in a moment.', 'ONLINE_MEETING_BUSY');
+  return getMeeting(db, p, id, tenant.id);
 }

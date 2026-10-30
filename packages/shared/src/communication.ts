@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { cursorQuery, cursored, dateStr, isoDateTime, pageQuery, paged, timeStr, uuid } from './common';
 import { ANNOUNCEMENT_PRIORITIES, AUDIENCE_TARGET_TYPES, EVENT_KINDS, MEETING_STATUSES } from './enums';
 import { fileAttachment } from './files';
+import { ONLINE_PROVIDERS, onlineMeetingChoice, onlineMeetingOut } from './online-meetings';
 import { USER_TYPES } from './permissions';
 
 /** `?flag=true|false` (z.coerce.boolean would turn "false" into true). */
@@ -139,6 +140,8 @@ const eventFields = {
   registrationDeadline: isoDateTime.nullable(),
   /** max number of children who may answer `going` / `consent_given` */
   capacity: z.number().int().min(1).max(100_000).nullable(),
+  /** Google Meet / Zoom meeting for the event (`null` = none). Needs a start and end time on ONE day. Created when the event is published, updated when the day / time / title change, cancelled with the event. */
+  onlineMeeting: onlineMeetingChoice.nullable(),
 };
 export const eventCreateBody = z.object({
   title: eventFields.title,
@@ -158,6 +161,7 @@ export const eventCreateBody = z.object({
   consentText: eventFields.consentText.optional(),
   registrationDeadline: eventFields.registrationDeadline.optional(),
   capacity: eventFields.capacity.optional(),
+  onlineMeeting: eventFields.onlineMeeting.optional(),
   /** publish immediately (needs events:publish) instead of saving a draft */
   publish: z.boolean().default(false),
 });
@@ -215,6 +219,10 @@ export const eventItem = z.object({
   audience: z.array(audienceTargetOut),
   /** only for managers on the detail endpoint */
   counts: eventCounts.nullable(),
+  /** the Zoom / Google Meet meeting; `null` when the event has none (or it is still a draft: nothing is created before publishing) */
+  onlineMeeting: onlineMeetingOut.nullable(),
+  /** the provider chosen for the event, also while it is a draft (the form shows it); `null` = no online meeting wanted */
+  onlineProvider: z.enum(ONLINE_PROVIDERS).nullable(),
 });
 export type EventItem = z.infer<typeof eventItem>;
 
@@ -276,6 +284,8 @@ export const calendarItem = z.object({
   entityId: uuid,
   /** client deep link */
   route: z.string(),
+  /** Zoom / Google Meet link of a published event with an online meeting; null otherwise */
+  joinUrl: z.string().nullable(),
 });
 export type CalendarItem = z.infer<typeof calendarItem>;
 export const calendarResponse = z.object({ from: dateStr, to: dateStr, data: z.array(calendarItem) });
@@ -303,14 +313,18 @@ export const meetingConfirmBody = z.object({
   scheduledAt: meetingSlot.scheduledAt,
   durationMin: meetingSlot.durationMin.default(15),
   mode: meetingSlot.mode.default('in_person'),
-  /** a room for in_person meetings; a link is required for online */
+  /** a room for in_person meetings; a link is required for online unless a provider creates the meeting */
   locationOrLink: meetingSlot.locationOrLink.optional(),
+  /** online meetings: `zoom` / `google` creates the meeting there and puts its join link in `locationOrLink`; `null` = type your own link; omitted = the school's default provider (if one is connected) */
+  provider: z.enum(ONLINE_PROVIDERS).nullable().optional(),
 });
 export const meetingRescheduleBody = z.object({
   scheduledAt: meetingSlot.scheduledAt,
   durationMin: meetingSlot.durationMin.optional(),
   mode: meetingSlot.mode.optional(),
   locationOrLink: meetingSlot.locationOrLink.optional(),
+  /** see meetingConfirmBody; omitted keeps the provider the meeting already has */
+  provider: z.enum(ONLINE_PROVIDERS).nullable().optional(),
 });
 export const meetingDeclineBody = z.object({ reason: z.string().trim().min(1).max(500) });
 export const meetingCompleteBody = z.object({ outcomeNotes: z.string().trim().min(1).max(3000) });
@@ -335,6 +349,8 @@ export const meetingItem = z.object({
   updatedAt: isoDateTime,
   /** what the caller may do next */
   availableActions: z.array(z.enum(MEETING_ACTIONS)),
+  /** the Zoom / Google Meet meeting (its join link is also in `locationOrLink`); `null` when the meeting has none */
+  onlineMeeting: onlineMeetingOut.nullable(),
 });
 export type MeetingItem = z.infer<typeof meetingItem>;
 export const meetingListQuery = pageQuery.extend({

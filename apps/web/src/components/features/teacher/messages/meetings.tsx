@@ -7,7 +7,8 @@ import { meetingCancelBody, meetingCompleteBody, meetingConfirmBody, meetingDecl
 import { fmtDateTime, fmtTime, todayIso } from '@/lib/format';
 import { applyApiErrors, useZodForm } from '@/lib/client/use-zod-form';
 import { commsError } from '@/lib/client/teacher-comms';
-import { useMeetingAction, useMeetings, useUpcomingMeetings, type MeetingActionInput } from '@/lib/client/teacher-comms';
+import { useMeetingAction, useMeetings, useRetryMeetingOnline, useUpcomingMeetings, type MeetingActionInput } from '@/lib/client/teacher-comms';
+import { useOnlineProviders } from '@/lib/client/online-meetings';
 import { StatusChip } from '@/components/ui/badge';
 import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
@@ -15,9 +16,11 @@ import { Card, CardBody } from '@/components/ui/card';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Field, Input } from '@/components/ui/input';
+import { Select } from '@/components/ui/select';
 import { StatTile } from '@/components/ui/stat-tile';
 import { FormInput, FormSelect, FormTextarea } from '@/components/ui/form';
 import { toast } from '@/components/ui/toaster';
+import { JoinFor, providerLabel } from '../../online-meeting/online-meeting';
 import { CardListSkeleton, DateTimeField, ErrorCard, FilterSelect, useUrlState, useWriteGate } from '../common';
 import { isPast, Pager } from './fields';
 
@@ -131,7 +134,8 @@ function MeetingCard({ m, onAction }: { m: MeetingItem; onAction: (a: MeetingAct
               <span className="[&_svg]:size-3.5 [&_svg]:shrink-0">{MODE_ICON[m.mode]}</span>
               <dd className="min-w-0 truncate">
                 {MODE_LABEL[m.mode]}
-                {m.locationOrLink &&
+                {m.onlineMeeting && ` · ${providerLabel(m.onlineMeeting.provider)}`}
+                {!m.onlineMeeting && m.locationOrLink &&
                   (isUrl(m.locationOrLink) ? (
                     <>
                       {' · '}
@@ -146,6 +150,7 @@ function MeetingCard({ m, onAction }: { m: MeetingItem; onAction: (a: MeetingAct
             </div>
           )}
         </dl>
+        <OnlineRow m={m} readOnly={gate.readOnly} reason={gate.reason} />
         {m.outcomeNotes && (
           <p className="rounded-md bg-surface-subtle px-3 py-2 text-sm">
             <span className="t-caption block font-medium text-ink-2">{m.status === 'declined' ? 'Reason' : m.status === 'cancelled' ? 'Note' : 'Outcome'}</span>
@@ -243,11 +248,18 @@ function SlotForm({ meeting, action, busy, onClose, onSubmit, onError }: { meeti
       scheduledAt: meeting.scheduledAt ?? meeting.proposedAt ?? undefined,
       durationMin: meeting.durationMin || 15,
       mode: meeting.mode ?? 'in_person',
-      locationOrLink: meeting.locationOrLink ?? '',
+      locationOrLink: meeting.onlineMeeting ? '' : (meeting.locationOrLink ?? ''),
     },
   });
   const mode = form.watch('mode') ?? meeting.mode;
   const today = todayIso();
+  const providers = useOnlineProviders();
+  const offered = providers.data?.providers ?? [];
+  // 'manual' = type your own link; otherwise Zoom / Google Meet creates the meeting and the parent gets its link
+  const [via, setVia] = React.useState<string | null>(null);
+  const defaultVia = meeting.mode === 'online' ? (meeting.onlineMeeting?.provider ?? 'manual') : (providers.data?.defaultProvider ?? 'manual');
+  const chosenVia = !offered.length ? 'manual' : (via ?? defaultVia);
+  const usesProvider = mode === 'online' && chosenVia !== 'manual';
 
   return (
     <form
@@ -258,8 +270,10 @@ function SlotForm({ meeting, action, busy, onClose, onSubmit, onError }: { meeti
           onError(null);
           const link = (v.locationOrLink ?? '').trim();
           if (isPast(v.scheduledAt)) return void form.setError('scheduledAt', { type: 'validate', message: 'Pick a time in the future.' });
-          if ((v.mode ?? 'in_person') === 'online' && !link) return void form.setError('locationOrLink', { type: 'validate', message: 'Add the meeting link for an online meeting.' });
-          const body = { scheduledAt: v.scheduledAt, durationMin: v.durationMin, mode: v.mode, locationOrLink: link || undefined };
+          const online = (v.mode ?? 'in_person') === 'online';
+          if (online && chosenVia === 'manual' && !link) return void form.setError('locationOrLink', { type: 'validate', message: 'Add the meeting link for an online meeting.' });
+          const provider = online && offered.length > 0 ? (chosenVia === 'manual' ? null : (chosenVia as 'zoom' | 'google')) : undefined;
+          const body = { scheduledAt: v.scheduledAt, durationMin: v.durationMin, mode: v.mode, locationOrLink: online && chosenVia !== 'manual' ? undefined : link || undefined, ...(provider !== undefined ? { provider } : {}) };
           try {
             await onSubmit({ id: meeting.id, action, body });
           } catch (e) {
@@ -290,20 +304,79 @@ function SlotForm({ meeting, action, busy, onClose, onSubmit, onError }: { meeti
         />
         <FormSelect control={form.control} name="mode" label="How" options={MEETING_MODES.map((m) => ({ value: m, label: MODE_LABEL[m]! }))} />
       </div>
-      <FormInput
-        control={form.control}
-        name="locationOrLink"
-        label={mode === 'online' ? 'Meeting link' : mode === 'phone' ? 'Number to call (optional)' : 'Room or place'}
-        required={mode === 'online'}
-        maxLength={300}
-        placeholder={mode === 'online' ? 'https://meet.example.org/…' : mode === 'phone' ? 'e.g. the number the guardian gave' : 'e.g. Staff room 2'}
-      />
+      {mode === 'online' && offered.length > 0 && (
+        <Field label="Meeting service" hint={usesProvider ? `SchoolSync creates the ${providerLabel(chosenVia as 'zoom' | 'google')} meeting and gives the guardian its link. It follows the time you set here.` : 'You type the link yourself.'}>
+          <Select value={chosenVia} onValueChange={setVia} options={[...offered.map((p) => ({ value: p, label: providerLabel(p) })), { value: 'manual', label: 'My own link (I will type it)' }]} aria-label="Meeting service" />
+        </Field>
+      )}
+      {!usesProvider && (
+        <FormInput
+          control={form.control}
+          name="locationOrLink"
+          label={mode === 'online' ? 'Meeting link' : mode === 'phone' ? 'Number to call (optional)' : 'Room or place'}
+          required={mode === 'online'}
+          maxLength={300}
+          placeholder={mode === 'online' ? 'https://meet.example.org/…' : mode === 'phone' ? 'e.g. the number the guardian gave' : 'e.g. Staff room 2'}
+        />
+      )}
       <div className="flex justify-end gap-2 pt-1">
         <Button type="button" variant="secondary" onClick={onClose} disabled={busy}>Cancel</Button>
         <Button type="submit" loading={busy}>{action === 'confirm' ? 'Confirm meeting' : 'Reschedule'}</Button>
       </div>
     </form>
   );
+}
+
+/** Join button for a meeting with an online room, and for the people who run it: the host link, or the failure with a Retry. */
+function OnlineRow({ m, readOnly, reason }: { m: MeetingItem; readOnly: boolean; reason?: string }) {
+  const retry = useRetryMeetingOnline();
+  const om = m.onlineMeeting;
+  if (!om) return null;
+  const editor = om.startUrl !== undefined;
+  if (om.status === 'scheduled' && m.status === 'confirmed') {
+    return (
+      <div className="flex flex-wrap items-center gap-2">
+        <JoinFor meeting={om} stop={false} variant="primary" />
+        {editor && om.startUrl && (
+          <Button asChild size="sm" variant="secondary">
+            <a href={om.startUrl} target="_blank" rel="noopener noreferrer">
+              <ExternalLink aria-hidden /> Start as host
+            </a>
+          </Button>
+        )}
+        {om.passcode && <span className="t-caption text-ink-2">Passcode {om.passcode}</span>}
+      </div>
+    );
+  }
+  if (om.status === 'failed' && editor) {
+    return (
+      <Banner
+        tone="danger"
+        title="The online meeting could not be set up"
+        action={
+          <Button
+            size="sm"
+            variant="secondary"
+            loading={retry.isPending}
+            disabled={readOnly}
+            title={reason}
+            onClick={() =>
+              void retry.mutateAsync(m.id).then(
+                (r) => (r.onlineMeeting?.status === 'scheduled' ? toast.success('The online meeting is set up') : toast.error('Still not working', { description: r.onlineMeeting?.error ?? 'Try again in a few minutes.' })),
+                (x) => toast.error(commsError(x), { duration: 8000 }),
+              )
+            }
+          >
+            Retry
+          </Button>
+        }
+      >
+        {om.error} The meeting itself is saved. SchoolSync also tries again every few minutes for a day.
+      </Banner>
+    );
+  }
+  if (om.status === 'failed') return <p className="t-caption text-ink-2">The online link is not ready yet. The teacher is setting it up.</p>;
+  return null;
 }
 
 function ReasonForm({ kind, busy, onClose, onSubmit }: { kind: 'decline' | 'complete' | 'cancel'; busy: boolean; onClose: () => void; onSubmit: (text: string) => Promise<boolean> }) {

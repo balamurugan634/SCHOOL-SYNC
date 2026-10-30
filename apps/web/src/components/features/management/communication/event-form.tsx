@@ -6,6 +6,7 @@ import { Controller } from 'react-hook-form';
 import { z } from 'zod';
 import { EVENT_KINDS, audienceTargetIn, eventCreateBody, type EventItem } from '@school-sync/shared';
 import { useCreateEvent, useEventAction, useUpdateEvent } from '@/lib/client/communication';
+import { useOnlineProviders } from '@/lib/client/online-meetings';
 import { friendlyError } from '@/lib/client/mgmt';
 import { applyApiErrors, useZodForm } from '@/lib/client/use-zod-form';
 import { useUnsavedGuard } from '@/lib/client/use-unsaved-guard';
@@ -17,6 +18,8 @@ import { toast } from '@/components/ui/toaster';
 import { FormDateTime } from '../common/date-time-field';
 import { GuardedButton } from '../common/guarded';
 import { useMgmt } from '../common/use-mgmt';
+import { paths } from '../shared/paths';
+import { OnlineMeetingField, type OnlineBlock, type OnlineChoice } from '../../online-meeting/online-meeting-field';
 import { AudiencePicker } from './audience-picker';
 
 export const KIND_LABEL: Record<string, string> = { holiday: 'Holiday', event: 'Event', exam: 'Exam', ptm: 'Parent–teacher meeting', sports: 'Sports', other: 'Other' };
@@ -38,15 +41,17 @@ const formSchema = z.object({
   consentText: z.string().trim().max(3000),
   registrationDeadline: z.string().nullable(),
   capacity: z.string().regex(/^\d{0,6}$/, 'Whole number of children'),
+  onlineProvider: z.enum(['none', 'zoom', 'google']),
 });
 
-const empty = { title: '', kind: 'event' as const, description: '', startDate: '', endDate: '', allDay: true, startTime: '', endTime: '', location: '', audience: [], registrationRequired: false, consentRequired: false, consentText: '', registrationDeadline: null, capacity: '' };
+const empty = { title: '', kind: 'event' as const, description: '', startDate: '', endDate: '', allDay: true, startTime: '', endTime: '', location: '', audience: [], registrationRequired: false, consentRequired: false, consentText: '', registrationDeadline: null, capacity: '', onlineProvider: 'none' as const };
 
 /** Create or edit an event / holiday. Save a draft, or publish (needs events:publish) to put it on calendars and notify the audience. */
 export function EventForm({ event, onSaved }: { event?: EventItem; onSaved?: (e: EventItem) => void }) {
   const router = useRouter();
-  const { base, tz, writeBlock, canWrite } = useMgmt();
+  const { base, tz, writeBlock, canWrite, can } = useMgmt();
   const isEdit = !!event;
+  const providers = useOnlineProviders();
   const create = useCreateEvent();
   const update = useUpdateEvent();
   const action = useEventAction();
@@ -54,7 +59,7 @@ export function EventForm({ event, onSaved }: { event?: EventItem; onSaved?: (e:
   const [busy, setBusy] = React.useState<'save' | 'publish' | null>(null);
   const form = useZodForm(formSchema, {
     defaultValues: event
-      ? { title: event.title, kind: event.kind, description: event.description ?? '', startDate: event.startDate, endDate: event.endDate, allDay: event.allDay, startTime: event.startTime ?? '', endTime: event.endTime ?? '', location: event.location ?? '', audience: event.audience.map((a) => (a.type === 'all' ? { type: a.type } : { type: a.type, id: a.id })), registrationRequired: event.registrationRequired, consentRequired: event.consentRequired, consentText: event.consentText ?? '', registrationDeadline: event.registrationDeadline, capacity: event.capacity ? String(event.capacity) : '' }
+      ? { title: event.title, kind: event.kind, description: event.description ?? '', startDate: event.startDate, endDate: event.endDate, allDay: event.allDay, startTime: event.startTime ?? '', endTime: event.endTime ?? '', location: event.location ?? '', audience: event.audience.map((a) => (a.type === 'all' ? { type: a.type } : { type: a.type, id: a.id })), registrationRequired: event.registrationRequired, consentRequired: event.consentRequired, consentText: event.consentText ?? '', registrationDeadline: event.registrationDeadline, capacity: event.capacity ? String(event.capacity) : '', onlineProvider: event.onlineProvider ?? 'none' }
       : { ...empty, startDate: todayIn(tz), endDate: '' },
   });
   const { guard, dialog } = useUnsavedGuard(form.formState.isDirty);
@@ -63,6 +68,9 @@ export function EventForm({ event, onSaved }: { event?: EventItem; onSaved?: (e:
   const reg = form.watch('registrationRequired');
   const consent = form.watch('consentRequired');
   const startDate = form.watch('startDate');
+  const endDate = form.watch('endDate');
+  const onlineProvider = form.watch('onlineProvider') as OnlineChoice;
+  const onlineBlock: OnlineBlock = allDay ? 'all_day' : endDate && endDate !== startDate ? 'multi_day' : null;
   const needsResponse = reg || consent;
   const published = event?.status === 'published';
 
@@ -80,6 +88,12 @@ export function EventForm({ event, onSaved }: { event?: EventItem; onSaved?: (e:
         }
         if (v.consentRequired && !v.consentText.trim()) {
           form.setError('consentText', { message: 'Write what parents are agreeing to.' });
+          return;
+        }
+        // an event that cannot hold a meeting (all-day, several days) never sends one
+        const online: OnlineChoice = onlineBlock ? 'none' : v.onlineProvider;
+        if (online !== 'none' && (!v.startTime || !v.endTime)) {
+          form.setError(v.startTime ? 'endTime' : 'startTime', { message: 'An online meeting needs a start and an end time.' });
           return;
         }
         setBusy(mode);
@@ -101,6 +115,7 @@ export function EventForm({ event, onSaved }: { event?: EventItem; onSaved?: (e:
             consentText: v.consentRequired ? v.consentText : null,
             registrationDeadline: needsResponse ? v.registrationDeadline : null,
             capacity: needsResponse && cap ? cap : null,
+            onlineMeeting: online === 'none' ? null : { provider: online },
           };
           let saved: EventItem;
           if (isEdit) saved = await update.mutateAsync({ id: event.id, body });
@@ -146,6 +161,22 @@ export function EventForm({ event, onSaved }: { event?: EventItem; onSaved?: (e:
           )}
         </FormSection>
 
+        <OnlineMeetingField
+          value={onlineProvider}
+          onChange={(v) => form.setValue('onlineProvider', v, { shouldDirty: true })}
+          providers={providers.data}
+          loading={providers.isPending && !providers.isError}
+          block={onlineBlock}
+          onSetTime={() => {
+            form.setValue('allDay', false, { shouldDirty: true });
+            if (!form.getValues('startTime')) form.setValue('startTime', '09:00', { shouldDirty: true });
+            if (!form.getValues('endTime')) form.setValue('endTime', '10:00', { shouldDirty: true });
+          }}
+          onUseOneDay={() => form.setValue('endDate', '', { shouldDirty: true })}
+          settingsHref={can('settings:edit', 'school') ? paths.school('meetings') : undefined}
+          existing={event?.onlineMeeting && event.onlineMeeting.status !== 'cancelled' ? event.onlineMeeting.provider : null}
+        />
+
         <FormSection title="Who it is for">
           <Controller control={form.control} name="audience" render={({ field, fieldState }) => <AudiencePicker value={field.value ?? []} onChange={field.onChange} perm="events:create" initialLabels={event?.audience} error={fieldState.error?.message ?? (form.formState.errors.audience as { message?: string } | undefined)?.message ?? null} />} />
         </FormSection>
@@ -163,7 +194,7 @@ export function EventForm({ event, onSaved }: { event?: EventItem; onSaved?: (e:
         </FormSection>
 
         {err && <Banner tone="danger">{err}</Banner>}
-        {event?.status === 'published' && <Banner tone="info">This event is published. Changing the date, time or place notifies the audience.</Banner>}
+        {event?.status === 'published' && <Banner tone="info">This event is published. Changing the date, time or place notifies the audience{event.onlineMeeting ? ', and the online meeting follows the new day and time' : ''}.</Banner>}
 
         <div className="sticky bottom-0 -mx-1 flex flex-wrap items-center justify-end gap-2 border-t border-border bg-bg/95 px-1 py-3 backdrop-blur">
           <Button

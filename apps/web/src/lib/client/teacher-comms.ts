@@ -49,6 +49,11 @@ const COMMS_MESSAGES: Record<string, string> = {
   EVENT_DATES_INVALID: 'The end date can’t be before the start date.',
   EVENT_TIME_REQUIRED: 'Add a start time, or mark it as an all-day event.',
   EVENT_TIME_INVALID: 'The end time must be after the start time.',
+  ONLINE_MEETING_NEEDS_TIME: 'An online meeting needs a start time and an end time. Set the times, or choose “No online meeting”.',
+  ONLINE_MEETING_MULTI_DAY: 'An online meeting must be on a single day. Use one day, or choose “No online meeting”.',
+  ONLINE_PROVIDER_NOT_CONNECTED: 'That meeting service is not connected for your school. Choose another option, or ask the school office.',
+  ONLINE_MEETING_NOT_FAILED: 'There is nothing to retry: the online meeting is fine.',
+  ONLINE_MEETING_BUSY: 'The online meeting is being updated right now. Try again in a moment.',
   CONSENT_TEXT_REQUIRED: 'Write what parents are agreeing to in the permission slip.',
   DEADLINE_AFTER_EVENT: 'The answer-by deadline must be on or before the last day of the event.',
   RESPONSE_SETTINGS_WITHOUT_REGISTRATION: 'Places and a deadline only apply when you ask for registration or permission.',
@@ -174,6 +179,8 @@ export const useSaveEvent = () =>
   useWrite(({ id, body }: { id?: string; body: EventCreateBody | EventUpdateBody }) => (id ? bff<EventItem>(`/events/${id}`, { method: 'PATCH', body }) : bff<EventItem>('/events', { method: 'POST', body })));
 export const useEventAction = () => useWrite(({ id, action }: { id: string; action: 'publish' | 'cancel' }) => bff<EventItem>(`/events/${id}/${action}`, { method: 'POST' }));
 export const useDeleteEvent = () => useWrite((id: string) => bff<null>(`/events/${id}`, { method: 'DELETE' }));
+/** Retry the event's Zoom / Google Meet meeting after a failure. */
+export const useRetryEventOnline = () => useWrite((id: string) => bff<EventItem>(`/events/${id}/online-meeting/retry`, { method: 'POST' }));
 
 /* ───────────────────────── meetings ───────────────────────── */
 
@@ -193,6 +200,8 @@ export type MeetingActionInput =
   | { id: string; action: 'decline'; body: z.input<typeof meetingDeclineBody> }
   | { id: string; action: 'complete'; body: z.input<typeof meetingCompleteBody> }
   | { id: string; action: 'cancel'; body: z.input<typeof meetingCancelBody> };
+/** Retry a meeting's Zoom / Google Meet room after a failure. */
+export const useRetryMeetingOnline = () => useWrite((id: string) => bff<MeetingItem>(`/meetings/${id}/online-meeting/retry`, { method: 'POST' }));
 export const useMeetingAction = () => useWrite(({ id, action, body }: MeetingActionInput) => bff<MeetingItem>(`/meetings/${id}/${action}`, { method: 'POST', body }));
 
 /* ───────────────────────── notifications ───────────────────────── */

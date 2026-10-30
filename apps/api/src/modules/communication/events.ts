@@ -4,6 +4,7 @@ import { audit, type AuditActor } from '../../core/audit';
 import { AppError, conflict, forbidden, notFound, unprocessable } from '../../core/errors';
 import { ilikeAny, todayIn } from '../../core/http';
 import { notify } from '../../core/notify';
+import { addCleanup, assertProviderUsable, presentOnline, syncOnline, withoutOnlineRuntime } from '../../core/online-meetings';
 import type { Principal } from '../../core/rbac/principal';
 import { assertStudentAccess } from '../../core/rbac/scope';
 import type { Executor } from '../../core/tenancy/pools';
@@ -35,7 +36,7 @@ const hhmm = (t: string | null) => (t ? t.slice(0, 5) : null);
 
 // ── mapping ─────────────────────────────────────────────────────────────────────────────────────
 
-export function toItem(ev: EventRow, p: Principal, today: string, x: { children?: EventChildResponse[]; audience?: EventItem['audience']; counts?: EventCounts | null } = {}, now = new Date()): EventItem {
+export function toItem(ev: EventRow, p: Principal, today: string, x: { children?: EventChildResponse[]; audience?: EventItem['audience']; counts?: EventCounts | null; tenantId?: string } = {}, now = new Date()): EventItem {
   const manage = canManageEvent(p, ev);
   return {
     id: ev.id,
@@ -60,6 +61,8 @@ export function toItem(ev: EventRow, p: Principal, today: string, x: { children?
     children: x.children ?? [],
     audience: manage ? (x.audience ?? []) : [],
     counts: manage ? (x.counts ?? null) : null,
+    onlineMeeting: presentOnline(ev, 'event', { canEdit: manage, tenantId: x.tenantId }),
+    onlineProvider: ev.onlineProvider,
   };
 }
 
@@ -125,7 +128,7 @@ export async function listEvents(db: Executor, tenant: TenantInfo, p: Principal,
     db.select({ n: count() }).from(events).where(where),
   ]);
   const [children, audience] = await Promise.all([loadChildren(db, p, rows), loadAudience(db, 'event', rows.filter((e) => canManageEvent(p, e)).map((e) => e.id))]);
-  return { items: rows.map((e) => toItem(e, p, today, { children: children.get(e.id), audience: audience.get(e.id) })), total: totalRow[0]?.n ?? 0 };
+  return { items: rows.map((e) => toItem(e, p, today, { children: children.get(e.id), audience: audience.get(e.id), tenantId: tenant.id })), total: totalRow[0]?.n ?? 0 };
 }
 
 export async function getEvent(db: Executor, tenant: TenantInfo, p: Principal, id: string): Promise<EventItem> {
@@ -133,12 +136,12 @@ export async function getEvent(db: Executor, tenant: TenantInfo, p: Principal, i
   if (!ev) throw notFound('Event');
   const manage = canManageEvent(p, ev);
   const [children, audience, counts] = await Promise.all([loadChildren(db, p, [ev]), manage ? loadAudience(db, 'event', [id]) : new Map(), manage && needsResponse(ev) ? eventCounts(db, ev) : Promise.resolve(null)]);
-  return toItem(ev, p, todayIn(tenant.timezone), { children: children.get(id), audience: audience.get(id), counts });
+  return toItem(ev, p, todayIn(tenant.timezone), { children: children.get(id), audience: audience.get(id), counts, tenantId: tenant.id });
 }
 
 // ── writes ──────────────────────────────────────────────────────────────────────────────────────
 
-type Shape = Pick<EventRow, 'startDate' | 'endDate' | 'startTime' | 'endTime' | 'allDay' | 'registrationRequired' | 'consentRequired' | 'consentText' | 'registrationDeadline' | 'capacity' | 'kind'>;
+type Shape = Pick<EventRow, 'startDate' | 'endDate' | 'startTime' | 'endTime' | 'allDay' | 'registrationRequired' | 'consentRequired' | 'consentText' | 'registrationDeadline' | 'capacity' | 'kind' | 'onlineProvider'>;
 
 function validateShape(e: Shape, tenant: TenantInfo): void {
   if (e.endDate < e.startDate) throw unprocessable('endDate cannot be before startDate', 'EVENT_DATES_INVALID');
@@ -147,6 +150,10 @@ function validateShape(e: Shape, tenant: TenantInfo): void {
   if (e.consentRequired && !e.consentText?.trim()) throw unprocessable('Add the consent text parents will agree to', 'CONSENT_TEXT_REQUIRED');
   if (!needsResponse(e) && (e.capacity !== null || e.registrationDeadline !== null)) throw unprocessable('capacity and registrationDeadline only apply to events with registration or consent', 'RESPONSE_SETTINGS_WITHOUT_REGISTRATION');
   if (e.registrationDeadline && todayIn(tenant.timezone, e.registrationDeadline) > e.endDate) throw unprocessable('The deadline must be on or before the last day of the event', 'DEADLINE_AFTER_EVENT');
+  if (e.onlineProvider) {
+    if (e.allDay || !e.startTime || !e.endTime) throw new AppError(422, 'ONLINE_MEETING_NEEDS_TIME', 'An online meeting needs a start time and an end time. Set the times, or choose “No online meeting”.', { field: 'onlineMeeting' });
+    if (e.endDate !== e.startDate) throw new AppError(422, 'ONLINE_MEETING_MULTI_DAY', 'An online meeting must be on a single day. Use one day, or choose “No online meeting”.', { field: 'onlineMeeting' });
+  }
 }
 
 const fromRow = (r: EventRow): Shape => r;
@@ -165,8 +172,10 @@ export async function createEvent(db: Executor, tenant: TenantInfo, p: Principal
     consentText: body.consentText ?? null,
     registrationDeadline: body.registrationDeadline ? new Date(body.registrationDeadline) : null,
     capacity: body.capacity ?? null,
+    onlineProvider: body.onlineMeeting?.provider ?? null,
   };
   validateShape(shape, tenant);
+  if (shape.onlineProvider) await assertProviderUsable(db, shape.onlineProvider);
   const id = await db.transaction(async (tx) => {
     const targets = await normalizeTargets(tx, p, 'events:create', body.audience);
     const [ev] = await tx
@@ -174,7 +183,7 @@ export async function createEvent(db: Executor, tenant: TenantInfo, p: Principal
       .values({ ...shape, title: body.title, description: body.description ?? null, location: body.location ?? null, audienceAll: targets.some((t) => t.type === 'all'), status: body.publish ? 'published' : 'draft', createdBy: p.userId })
       .returning();
     await replaceTargets(tx, 'event', ev!.id, targets);
-    await audit(tx, actor, { action: body.publish ? 'event.publish' : 'event.create', entity: 'event', entityId: ev!.id, summary: ev!.title, after: { kind: ev!.kind, startDate: ev!.startDate, endDate: ev!.endDate, audience: targets, status: ev!.status } });
+    await audit(tx, actor, { action: body.publish ? 'event.publish' : 'event.create', entity: 'event', entityId: ev!.id, summary: ev!.title, after: { kind: ev!.kind, startDate: ev!.startDate, endDate: ev!.endDate, audience: targets, status: ev!.status, onlineProvider: ev!.onlineProvider } });
     return ev!.id;
   });
   return { id, notify: !!body.publish };
@@ -201,8 +210,11 @@ export async function updateEvent(db: Executor, tenant: TenantInfo, p: Principal
       consentText: body.consentText === undefined ? ev.consentText : body.consentText,
       registrationDeadline: body.registrationDeadline === undefined ? ev.registrationDeadline : body.registrationDeadline ? new Date(body.registrationDeadline) : null,
       capacity: body.capacity === undefined ? ev.capacity : body.capacity,
+      onlineProvider: body.onlineMeeting === undefined ? ev.onlineProvider : (body.onlineMeeting?.provider ?? null),
     };
     validateShape(fromRow(next), tenant);
+    // the provider only has to be connected when it is newly chosen: saving other changes to an event must not fail because Zoom was disconnected since
+    if (next.onlineProvider && next.onlineProvider !== ev.onlineProvider) await assertProviderUsable(tx, next.onlineProvider);
     if (next.capacity !== null && next.capacity !== ev.capacity) {
       const [taken] = await tx.select({ n: count() }).from(eventRegistrations).where(and(eq(eventRegistrations.eventId, id), inArray(eventRegistrations.response, POSITIVE)));
       if ((taken?.n ?? 0) > next.capacity) throw conflict(`${taken?.n} children are already registered; capacity cannot go below that`, 'CAPACITY_BELOW_REGISTRATIONS');
@@ -212,8 +224,9 @@ export async function updateEvent(db: Executor, tenant: TenantInfo, p: Principal
       await replaceTargets(tx, 'event', id, targets);
       next.audienceAll = targets.some((t) => t.type === 'all');
     }
-    const { id: _id, createdAt: _c, updatedAt: _u, createdBy: _b, status: _s, ...set } = next;
-    await tx.update(events).set(set).where(eq(events.id, id));
+    const { id: _id, createdAt: _c, updatedAt: _u, createdBy: _b, status: _s, ...rest } = next;
+    // the sync worker owns the online_* bookkeeping columns: only the chosen provider is an edit
+    await tx.update(events).set(withoutOnlineRuntime(rest)).where(eq(events.id, id));
     await audit(tx, actor, { action: 'event.update', entity: 'event', entityId: id, summary: next.title, before: { title: ev.title, startDate: ev.startDate, endDate: ev.endDate, startTime: ev.startTime, location: ev.location }, after: { ...body, audience: body.audience } });
     const moved = next.startDate !== ev.startDate || next.endDate !== ev.endDate || next.startTime !== ev.startTime || next.location !== ev.location;
     return { notifyChange: ev.status === 'published' && moved };
@@ -244,8 +257,9 @@ export async function cancelEvent(db: Executor, p: Principal, actor: AuditActor,
   });
 }
 
-export async function deleteEvent(db: Executor, p: Principal, actor: AuditActor, id: string): Promise<void> {
-  await db.transaction(async (tx) => {
+/** Returns true when a meeting at the provider still has to be cancelled (call `runCleanup` afterwards; the background job repeats it). */
+export async function deleteEvent(db: Executor, p: Principal, actor: AuditActor, id: string): Promise<boolean> {
+  return db.transaction(async (tx) => {
     const [ev] = await tx.select().from(events).where(eq(events.id, id)).limit(1).for('update');
     if (!ev || !(canManageEvent(p, ev) || p.scope('events:delete'))) throw notFound('Event');
     if (ev.status !== 'draft') {
@@ -255,8 +269,22 @@ export async function deleteEvent(db: Executor, p: Principal, actor: AuditActor,
     }
     await tx.delete(audienceTargets).where(and(eq(audienceTargets.ownerType, 'event'), eq(audienceTargets.ownerId, id)));
     await tx.delete(events).where(eq(events.id, id));
-    await audit(tx, actor, { action: 'event.delete', entity: 'event', entityId: id, summary: ev.title, before: { status: ev.status, startDate: ev.startDate } });
+    // no event row is left to carry the state: note the meeting that must still be cancelled at the provider, in this same transaction
+    const cleanup = !!ev.onlineMeetingId && !!ev.onlineRemoteProvider;
+    if (cleanup) await addCleanup(tx, ev.onlineRemoteProvider!, ev.onlineMeetingId!, 'event');
+    await audit(tx, actor, { action: 'event.delete', entity: 'event', entityId: id, summary: ev.title, before: { status: ev.status, startDate: ev.startDate, ...(cleanup ? { onlineMeeting: ev.onlineRemoteProvider } : {}) } });
+    return cleanup;
   });
+}
+
+/** Retry button: finish creating, updating or cancelling the event's online meeting (only while it is in the `failed` state). */
+export async function retryOnline(db: Executor, tenant: TenantInfo, p: Principal, actor: AuditActor, id: string, log: { error(o: unknown, m?: string): void }): Promise<void> {
+  const [ev] = await db.select().from(events).where(eq(events.id, id)).limit(1);
+  if (!ev || !canManageEvent(p, ev)) throw notFound('Event');
+  if (ev.onlineStatus !== 'failed') throw conflict('There is nothing to retry for this event’s online meeting', 'ONLINE_MEETING_NOT_FAILED');
+  await audit(db, actor, { action: 'event.online_retry', entity: 'event', entityId: id, summary: ev.title });
+  const outcome = await syncOnline(tenant, db, 'event', id, { manual: true, actor, log });
+  if (outcome === 'busy') throw conflict('The online meeting is being updated right now. Try again in a moment.', 'ONLINE_MEETING_BUSY');
 }
 
 /** Tell the audience (minus the actor). Holidays are on the calendar but never pushed. */

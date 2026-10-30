@@ -3,11 +3,12 @@
 import * as React from 'react';
 import { MoreHorizontal } from 'lucide-react';
 import { MEETING_MODES, MEETING_STATUSES, type MeetingAction, type MeetingItem } from '@school-sync/shared';
-import { useMeetingAction, useMeetings, type MeetingActionVars } from '@/lib/client/communication';
+import { useMeetingAction, useMeetings, useRetryMeetingOnline, type MeetingActionVars } from '@/lib/client/communication';
+import { useOnlineProviders } from '@/lib/client/online-meetings';
 import { friendlyError } from '@/lib/client/mgmt';
 import { fmtZoned, isFuture, sameTimeTomorrow } from '@/lib/zoned';
 import { PageHeader } from '@/components/shell/page-header';
-import { StatusChip } from '@/components/ui/badge';
+import { Badge, StatusChip } from '@/components/ui/badge';
 import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/ui/data-table';
@@ -18,6 +19,7 @@ import { Field, Input } from '@/components/ui/input';
 import { IconButton } from '@/components/ui/icon-button';
 import { Select } from '@/components/ui/select';
 import { toast } from '@/components/ui/toaster';
+import { JoinCard, JoinFor, providerLabel } from '../../online-meeting/online-meeting';
 import { ReasonDialog } from '../common/dialogs';
 import { DateTimeField } from '../common/date-time-field';
 import { ChoicePills, ClearFilters, FilterBar, FilterChips, FilterDate, SearchBox } from '../common/filters';
@@ -41,6 +43,7 @@ export function MeetingsPage() {
   const [act, setAct] = React.useState<{ m: MeetingItem; action: MeetingAction } | null>(null);
   const filtered = ls.hasFilters(['status', 'from', 'to']);
   const open = q.data?.data.find((m) => m.id === openId) ?? null;
+  const retry = useRetryMeetingOnline();
   const whenOf = (m: MeetingItem) => (m.scheduledAt ? fmtZoned(m.scheduledAt, tz) : m.proposedAt ? `Asked for ${fmtZoned(m.proposedAt, tz)}` : '—');
 
   const menu = (m: MeetingItem) =>
@@ -104,6 +107,14 @@ export function MeetingsPage() {
           { id: 'topic', header: 'Topic', cell: (r) => <span className="block max-w-[30ch] truncate" title={r.topic}>{r.topic}</span>, mobile: 'detail', label: 'Topic' },
           { id: 'when', header: 'When', cell: whenOf, sortable: true, sortValue: (r) => r.scheduledAt ?? r.proposedAt ?? '', mobile: 'detail', label: 'When' },
           { id: 'mode', header: 'How', cell: (r) => MODE_LABEL[r.mode] ?? r.mode, defaultHidden: true, mobile: 'hide' },
+          {
+            id: 'online',
+            header: 'Online',
+            // depends on the row alone
+            cell: (r) => (r.onlineMeeting?.status === 'scheduled' && r.status === 'confirmed' ? <JoinFor meeting={r.onlineMeeting} /> : r.onlineMeeting?.status === 'failed' && r.onlineMeeting.error !== undefined ? <Badge variant="danger">Needs attention</Badge> : <span className="text-ink-3">—</span>),
+            mobile: 'detail',
+            label: 'Online',
+          },
           { id: 'status', header: 'Status', cell: (r) => <StatusChip status={r.status} />, mobile: 'status' },
           { id: 'actions', header: <span className="sr-only">Actions</span>, label: 'Actions', hideable: false, align: 'right', mobile: 'hide', cell: (r) => menu(r) || null },
         ]}
@@ -123,8 +134,22 @@ export function MeetingsPage() {
                   <Info label="Parent" value={open.guardian?.name ?? '—'} />
                   <Info label="When" value={whenOf(open)} />
                   <Info label="Length" value={`${open.durationMin} minutes`} />
-                  <Info label="How" value={`${MODE_LABEL[open.mode] ?? open.mode}${open.locationOrLink ? ` · ${open.locationOrLink}` : ''}`} />
+                  <Info label="How" value={`${MODE_LABEL[open.mode] ?? open.mode}${open.onlineMeeting ? ` · ${providerLabel(open.onlineMeeting.provider)}` : open.locationOrLink ? ` · ${open.locationOrLink}` : ''}`} />
                 </dl>
+                {open.onlineMeeting && (
+                  <JoinCard
+                    subject="meeting"
+                    meeting={open.onlineMeeting}
+                    canEdit={open.onlineMeeting.startUrl !== undefined}
+                    retrying={retry.isPending}
+                    onRetry={() =>
+                      void retry.mutateAsync({ id: open.id }).then(
+                        (r) => (r.onlineMeeting?.status === 'scheduled' ? toast.success('The online meeting is set up') : toast.error('Still not working', { description: r.onlineMeeting?.error ?? 'Try again in a few minutes.' })),
+                        (e) => toast.error('Couldn’t retry', { description: friendlyError(e) }),
+                      )
+                    }
+                  />
+                )}
                 {open.outcomeNotes && <Banner tone="info" title={open.status === 'completed' ? 'Outcome' : open.status === 'declined' ? 'Why it was declined' : 'Note'}>{open.outcomeNotes}</Banner>}
                 {open.availableActions.length === 0 && <p className="t-caption text-ink-3">There is nothing more to do on this meeting{open.status === 'requested' || open.status === 'confirmed' ? ' with your role' : ''}.</p>}
               </SheetBody>
@@ -194,12 +219,20 @@ function SlotDialog({ m, action, onClose }: { m: MeetingItem; action: 'confirm' 
   const [when, setWhen] = React.useState<string | null>(init ? (isFuture(init) ? init : sameTimeTomorrow(init, tz)) : null);
   const [duration, setDuration] = React.useState(String(m.durationMin || 15));
   const [mode, setMode] = React.useState<string>(m.mode);
-  const [where, setWhere] = React.useState(m.locationOrLink ?? '');
+  const [where, setWhere] = React.useState(m.onlineMeeting ? '' : (m.locationOrLink ?? ''));
+  const providers = useOnlineProviders();
+  const offered = providers.data?.providers ?? [];
+  // 'manual' = the teacher types the link; otherwise the provider creates the meeting
+  const [via, setVia] = React.useState<string | null>(null);
+  const wasOnline = m.mode === 'online';
+  const defaultVia = wasOnline ? (m.onlineMeeting?.provider ?? 'manual') : (providers.data?.defaultProvider ?? 'manual');
+  const chosenVia = !offered.length ? 'manual' : (via ?? defaultVia);
   const [err, setErr] = React.useState<string | null>(null);
   const [busy, setBusy] = React.useState(false);
   const online = mode === 'online';
   const past = !!when && !isFuture(when);
-  const missingLink = online && !where.trim();
+  const usesProvider = online && chosenVia !== 'manual';
+  const missingLink = online && !usesProvider && !where.trim();
   return (
     <Dialog open onOpenChange={(o) => !o && !busy && onClose()}>
       <DialogContent title={action === 'confirm' ? 'Confirm this meeting' : 'Reschedule this meeting'} description={`${m.student.name} with ${m.teacher.name}. The parent is notified.`}>
@@ -215,9 +248,21 @@ function SlotDialog({ m, action, onClose }: { m: MeetingItem; action: 'confirm' 
               <Select value={mode} onValueChange={setMode} options={MEETING_MODES.map((x) => ({ value: x, label: MODE_LABEL[x] ?? x }))} />
             </Field>
           </div>
-          <Field label={online ? 'Meeting link' : mode === 'phone' ? 'Phone number or note' : 'Room'} required={online} error={missingLink ? 'Add the link for an online meeting.' : null}>
-            <Input value={where} onChange={(e) => setWhere(e.target.value)} maxLength={300} placeholder={online ? 'https://meet.example.com/…' : 'Staff room 2'} invalid={missingLink} />
-          </Field>
+          {online && offered.length > 0 && (
+            <Field label="Meeting service" hint={usesProvider ? `SchoolSync creates the ${providerLabel(chosenVia as 'zoom' | 'google')} meeting and shares its link with the parent. It follows the time you set here.` : 'You type the link yourself.'}>
+              <Select
+                value={chosenVia}
+                onValueChange={setVia}
+                options={[...offered.map((p) => ({ value: p, label: providerLabel(p) })), { value: 'manual', label: 'My own link (I will type it)' }]}
+                aria-label="Meeting service"
+              />
+            </Field>
+          )}
+          {!usesProvider && (
+            <Field label={online ? 'Meeting link' : mode === 'phone' ? 'Phone number or note' : 'Room'} required={online} error={missingLink ? 'Add the link for an online meeting.' : null}>
+              <Input value={where} onChange={(e) => setWhere(e.target.value)} maxLength={300} placeholder={online ? 'https://meet.example.com/…' : 'Staff room 2'} invalid={missingLink} />
+            </Field>
+          )}
           {err && <Banner tone="danger">{err}</Banner>}
           <div className="flex justify-end gap-2">
             <Button variant="secondary" onClick={onClose} disabled={busy}>
@@ -230,7 +275,7 @@ function SlotDialog({ m, action, onClose }: { m: MeetingItem; action: 'confirm' 
                 setBusy(true);
                 setErr(null);
                 try {
-                  await act.mutateAsync({ id: m.id, action, scheduledAt: when!, durationMin: Number(duration), mode: mode as 'in_person' | 'online' | 'phone', locationOrLink: where.trim() || undefined });
+                  await act.mutateAsync({ id: m.id, action, scheduledAt: when!, durationMin: Number(duration), mode: mode as 'in_person' | 'online' | 'phone', locationOrLink: usesProvider ? undefined : where.trim() || undefined, ...(online && offered.length > 0 ? { provider: usesProvider ? (chosenVia as 'zoom' | 'google') : null } : {}) });
                   toast.success(action === 'confirm' ? 'Meeting confirmed' : 'Meeting rescheduled');
                   onClose();
                 } catch (e) {

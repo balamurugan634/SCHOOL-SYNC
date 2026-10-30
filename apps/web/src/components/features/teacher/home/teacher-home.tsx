@@ -16,6 +16,7 @@ import { ProgressBar } from '@/components/ui/progress';
 import { Reveal, useFirstLoad } from '@/components/ui/reveal';
 import { Skeleton } from '@/components/ui/skeleton';
 import { StatTile } from '@/components/ui/stat-tile';
+import { JoinFor } from '../../online-meeting/online-meeting';
 import { PageHeader } from '@/components/shell/page-header';
 import { useMe, useMeContext } from '@/components/me-context';
 
@@ -377,6 +378,16 @@ function MeetingsBlock({ d, base }: { d: D; base: string }) {
                 {m.guardian ? ` · ${m.guardian.name}` : ''}
                 {m.scheduledAt ? ` · ${fmtDateTime(m.scheduledAt)}` : m.proposedAt ? ` · wants ${fmtDateTime(m.proposedAt)}` : ''}
               </p>
+              {m.status === 'confirmed' && m.onlineMeeting?.status === 'scheduled' && (
+                <div className="flex flex-wrap items-center gap-2 pt-1">
+                  <JoinFor meeting={m.onlineMeeting} variant="primary" />
+                  {m.onlineMeeting.startUrl && (
+                    <Button asChild size="sm" variant="secondary">
+                      <a href={m.onlineMeeting.startUrl} target="_blank" rel="noopener noreferrer">Start as host</a>
+                    </Button>
+                  )}
+                </div>
+              )}
             </li>
           ))}
         </ul>

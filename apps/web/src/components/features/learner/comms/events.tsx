@@ -17,6 +17,7 @@ import { Field, Textarea } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from '@/components/ui/toaster';
+import { JoinCard, JoinFor } from '../../online-meeting/online-meeting';
 import { ErrorState, SkeletonRows } from '../states';
 import { useGates, useLearner } from '../use-learner';
 import { usePageParam, useUrlParams } from '../url-state';
@@ -103,6 +104,11 @@ export function EventsPanel() {
                         </span>
                       </span>
                     </button>
+                    {e.status === 'published' && e.onlineMeeting?.status === 'scheduled' && (
+                      <div className="pb-3.5 pl-[5.25rem] pr-5 max-sm:pl-20 max-sm:pr-4">
+                        <JoinFor meeting={e.onlineMeeting} />
+                      </div>
+                    )}
                   </li>
                 );
               })}
@@ -182,6 +188,7 @@ function EventDrawerBody({ id }: { id: string }) {
               </>
             )}
           </dl>
+          {e.onlineMeeting && e.status !== 'cancelled' && <JoinCard meeting={e.onlineMeeting} canEdit={false} />}
           {e.description && <p className="max-w-[68ch] whitespace-pre-wrap text-sm leading-6">{e.description}</p>}
           {e.consentRequired && e.consentText && (
             <section aria-label="Consent wording" className="rounded-lg border border-border bg-surface-subtle p-4">

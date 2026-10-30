@@ -48,6 +48,7 @@ import { auditCsv, getAuditEntry, listAudit } from './audit';
 import * as roleSvc from './roles';
 import { getAllSettings, getBranding, getFeatures, getGroup, requireGroup, updateBranding, updateFeatures, updateGroup } from './school';
 import emailRoutes from './email';
+import meetingIntegrationRoutes from './meeting-integrations-routes';
 import { setupStatus } from './setup';
 import * as userSvc from './users';
 
@@ -219,6 +220,8 @@ const routes: FastifyPluginAsyncZod = async (app) => {
   const stag = tag('Settings');
   // outgoing email: the school's own mail accounts + the email queue (/settings/email/…)
   await app.register(emailRoutes);
+  // online meetings: the school's own Zoom / Google Meet connections (/settings/meetings/…)
+  await app.register(meetingIntegrationRoutes);
   app.get('/settings', { preHandler: [requirePerm('settings:view', 'school')], schema: { tags: stag, summary: 'Every settings group in one call', response: { 200: settingsAllOut } } }, async (req) => getAllSettings(req.db));
 
   app.get('/settings/branding', { preHandler: [requirePerm('settings:view', 'school')], schema: { tags: stag, summary: 'School name, short name, logo and colours (what /site/info shows)', response: { 200: brandingOut } } }, async (req) => getBranding(req.tenant));

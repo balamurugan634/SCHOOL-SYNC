@@ -21,6 +21,7 @@ import { FormDate, FormInput, FormSection, FormSelect, FormTextarea } from '@/co
 import { Select } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from '@/components/ui/toaster';
+import { JoinFor } from '../../online-meeting/online-meeting';
 import { ErrorState, SkeletonRows } from '../states';
 import { useGates, useLearner } from '../use-learner';
 import { usePageParam, useUrlParams } from '../url-state';
@@ -64,12 +65,20 @@ function MeetingRow({ m, onCancel, showChild, disabled }: { m: MeetingItem; onCa
               {m.locationOrLink && !isUrl(m.locationOrLink) ? ` · ${m.locationOrLink}` : ''}
             </span>
           )}
-          {isUrl(m.locationOrLink) && (
-            <a href={m.locationOrLink} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-medium text-brand-ink underline-offset-4 hover:underline">
+          {/* a link typed by the teacher (no Zoom / Google Meet room behind it) */}
+          {!m.onlineMeeting && isUrl(m.locationOrLink) && m.status === 'confirmed' && (
+            <a href={m.locationOrLink} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-medium text-brand-ink underline-offset-4 hover:underline">
               <Link2 className="size-3.5" aria-hidden /> Join link
             </a>
           )}
         </p>
+        {m.status === 'confirmed' && m.onlineMeeting?.status === 'scheduled' && (
+          <p className="flex flex-wrap items-center gap-2 pt-0.5">
+            <JoinFor meeting={m.onlineMeeting} stop={false} variant="primary" />
+            {m.onlineMeeting.passcode && <span className="t-caption text-ink-2">Passcode {m.onlineMeeting.passcode}</span>}
+          </p>
+        )}
+        {m.status === 'confirmed' && m.onlineMeeting?.status === 'failed' && <p className="t-caption text-ink-2">The online link is not ready yet. The teacher is setting it up; check again a little later.</p>}
         {note && (
           <p className="t-caption rounded-md bg-surface-subtle px-3 py-2 text-ink-2">
             <span className="font-medium text-ink">{NOTE_LABEL[m.status]}: </span>

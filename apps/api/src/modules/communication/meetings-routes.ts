@@ -24,7 +24,7 @@ const routes: FastifyPluginAsyncZod = async (app) => {
       },
     },
     async (req) => {
-      const { items, total } = await svc.listMeetings(req.db, req.auth, req.query);
+      const { items, total } = await svc.listMeetings(req.db, req.auth, req.query, req.tenant.id);
       return pagedResult(items, total, req.query);
     },
   );
@@ -32,7 +32,7 @@ const routes: FastifyPluginAsyncZod = async (app) => {
   app.get(
     '/meetings/upcoming',
     { preHandler: [requirePerm('meetings:view')], schema: { tags: tag, summary: 'Upcoming confirmed meetings (soonest first) and requests still waiting for an answer', response: { 200: z.object({ data: z.array(meetingItem) }) } } },
-    async (req) => ({ data: await svc.upcoming(req.db, req.auth) }),
+    async (req) => ({ data: await svc.upcoming(req.db, req.auth, undefined, req.tenant.id) }),
   );
 
   app.get(
@@ -59,12 +59,22 @@ const routes: FastifyPluginAsyncZod = async (app) => {
     async (req, reply) => reply.status(201).send(await svc.requestMeeting(req.db, req.tenant, req.auth, actorOf(req), req.body)),
   );
 
-  app.get('/meetings/:id', { preHandler: [requirePerm('meetings:view')], schema: { tags: tag, summary: 'One meeting', params: idParam, response: { 200: meetingItem } } }, async (req) => svc.getMeeting(req.db, req.auth, req.params.id));
+  app.get('/meetings/:id', { preHandler: [requirePerm('meetings:view')], schema: { tags: tag, summary: 'One meeting', params: idParam, response: { 200: meetingItem } } }, async (req) => svc.getMeeting(req.db, req.auth, req.params.id, req.tenant.id));
 
   app.post(
     '/meetings/:id/confirm',
-    { preHandler: [decideGuard], schema: { tags: tag, summary: 'Confirm a request with a time, mode and place (teacher / class teacher / office); the parent is notified (`meeting.confirmed`)', params: idParam, body: meetingConfirmBody, response: { 200: meetingItem } } },
-    async (req) => svc.confirm(req.db, req.tenant, req.auth, actorOf(req), req.params.id, req.body),
+    {
+      preHandler: [decideGuard],
+      schema: {
+        tags: tag,
+        summary: 'Confirm a request with a time, mode and place (teacher / class teacher / office); the parent is notified (`meeting.confirmed`)',
+        description: 'Mode `online` with a connected provider (`provider`, default: the school’s default provider) creates the Zoom / Google Meet meeting and puts its join link in `locationOrLink`; without a provider the teacher types the link. A provider failure never blocks the confirmation: `onlineMeeting.status` becomes `failed` and the room can be retried.',
+        params: idParam,
+        body: meetingConfirmBody,
+        response: { 200: meetingItem },
+      },
+    },
+    async (req) => svc.confirm(req.db, req.tenant, req.auth, actorOf(req), req.params.id, req.body, req.log),
   );
 
   app.post(
@@ -76,13 +86,13 @@ const routes: FastifyPluginAsyncZod = async (app) => {
   app.post(
     '/meetings/:id/reschedule',
     { preHandler: [decideGuard], schema: { tags: tag, summary: 'Move a confirmed meeting to a new time (the teacher must be free); the parent is notified (`meeting.rescheduled`)', params: idParam, body: meetingRescheduleBody, response: { 200: meetingItem } } },
-    async (req) => svc.reschedule(req.db, req.tenant, req.auth, actorOf(req), req.params.id, req.body),
+    async (req) => svc.reschedule(req.db, req.tenant, req.auth, actorOf(req), req.params.id, req.body, req.log),
   );
 
   app.post(
     '/meetings/:id/complete',
     { preHandler: [decideGuard], schema: { tags: tag, summary: 'Close a confirmed meeting with outcome notes', params: idParam, body: meetingCompleteBody, response: { 200: meetingItem } } },
-    async (req) => svc.complete(req.db, req.auth, actorOf(req), req.params.id, req.body.outcomeNotes),
+    async (req) => svc.complete(req.db, req.tenant, req.auth, actorOf(req), req.params.id, req.body.outcomeNotes, req.log),
   );
 
   app.post(
@@ -92,7 +102,22 @@ const routes: FastifyPluginAsyncZod = async (app) => {
       preHandler: [requirePerm('meetings:view')],
       schema: { tags: tag, summary: 'Cancel a pending or confirmed meeting (the parent who asked, or the teacher / class teacher / office); the other side is notified (`meeting.cancelled`)', params: idParam, body: meetingCancelBody, response: { 200: meetingItem } },
     },
-    async (req) => svc.cancel(req.db, req.tenant, req.auth, actorOf(req), req.params.id, req.body.reason),
+    async (req) => svc.cancel(req.db, req.tenant, req.auth, actorOf(req), req.params.id, req.body.reason, req.log),
+  );
+
+  app.post(
+    '/meetings/:id/online-meeting/retry',
+    {
+      preHandler: [decideGuard],
+      schema: {
+        tags: tag,
+        summary: 'Retry the meeting’s Zoom / Google Meet room after a failure (create, update or cancel at the provider)',
+        description: 'Only while `onlineMeeting.status` is `failed`; 409 ONLINE_MEETING_NOT_FAILED otherwise. Failed rooms are also retried automatically every few minutes for a day.',
+        params: idParam,
+        response: { 200: meetingItem },
+      },
+    },
+    async (req) => svc.retryOnline(req.db, req.tenant, req.auth, actorOf(req), req.params.id, req.log),
   );
 };
 

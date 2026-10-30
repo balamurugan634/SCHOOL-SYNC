@@ -1,6 +1,7 @@
 import { eq, sql } from 'drizzle-orm';
 import { tenants } from '../db/control/schema';
 import { jobs as email } from './email/jobs';
+import { jobs as onlineMeetings } from './online-meetings/jobs';
 import { jobs as attendance } from '../modules/attendance/jobs';
 import { jobs as communication } from '../modules/communication/jobs';
 import { jobs as exams } from '../modules/exams/jobs';
@@ -27,7 +28,7 @@ export interface Job {
   run(tenant: TenantInfo, db: Executor): Promise<void>;
 }
 
-export const ALL_JOBS: Job[] = [...attendance, ...learning, ...exams, ...fees, ...communication, ...operations, ...email];
+export const ALL_JOBS: Job[] = [...attendance, ...learning, ...exams, ...fees, ...communication, ...operations, ...email, ...onlineMeetings];
 
 const lastRun = new Map<string, number>();
 const FAST_TICK_MS = 10_000;

@@ -14,6 +14,7 @@ import { Card, CardBody } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
 import { IconButton } from '@/components/ui/icon-button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { JoinButton } from '../../online-meeting/online-meeting';
 import { CHART } from '../common/charts';
 import { ErrorPanel } from '../common/states';
 import { useMgmt } from '../common/use-mgmt';
@@ -237,17 +238,20 @@ function ItemRow({ i, href }: { i: CalendarItem; href: string | null }) {
     </>
   );
   const cls = 'flex items-start gap-2 rounded-md border-l-[3px] bg-surface-subtle px-2.5 py-2';
+  // the Join link sits next to the item (not inside its link: a link must not contain another interactive element)
+  const join = i.status !== 'cancelled' ? <JoinButton url={i.joinUrl} /> : null;
   return (
-    <li>
+    <li className={cn(join && 'flex flex-wrap items-start gap-1.5 sm:flex-nowrap')}>
       {href ? (
-        <Link href={href} className={cn(cls, 'tr-colors hover:bg-surface-sunken', i.status === 'cancelled' && 'opacity-70')} style={{ borderLeftColor: s.color }}>
+        <Link href={href} className={cn(cls, 'tr-colors hover:bg-surface-sunken min-w-0 flex-1', i.status === 'cancelled' && 'opacity-70')} style={{ borderLeftColor: s.color }}>
           {body}
         </Link>
       ) : (
-        <div className={cls} style={{ borderLeftColor: s.color }}>
+        <div className={cn(cls, 'min-w-0 flex-1')} style={{ borderLeftColor: s.color }}>
           {body}
         </div>
       )}
+      {join && <div className="shrink-0 pt-1">{join}</div>}
     </li>
   );
 }
